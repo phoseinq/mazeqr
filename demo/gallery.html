@@ -16,22 +16,26 @@
 </head>
 <body>
 <main>
-  <h1>Maze QR — samples (still frames, day and night)</h1>
+  <h1>Maze QR — samples (day and night)</h1>
   <div class="grid" id="grid"></div>
 </main>
 <script src="../vendor/qrcode-generator.min.js"></script>
 <script src="../src/maze-qr.js"></script>
 <script>
   var samples = [
-    ["https://example.com/", false, 12], ["https://example.com/", true, 30],
-    ["Hello, maze!", false, 25], ["https://example.org/a/very/long/path/to/show/a/bigger/code?x=1", true, 18],
-    ["mailto:someone@example.com", false, 40], ["WIFI:T:WPA;S:example-network;P:not-a-real-password;;", true, 9],
-    ["https://example.net/p/42", false, 60], ["tel:+10000000000", true, 45]
+    ["https://example.com/", false], ["https://example.com/night", true],
+    ["Hello, maze!", false], ["https://example.org/a/very/long/path/to/show/a/bigger/code?x=1", true],
+    ["mailto:someone@example.com", false], ["WIFI:T:WPA;S:example-network;P:not-a-real-password;;", true],
+    ["https://example.net/p/42", false], ["tel:+10000000000", true]
   ];
   var grid = document.getElementById("grid");
+  // only the samples on screen animate: eight live mazes at once would be heavy
+  var seen = window.IntersectionObserver && new IntersectionObserver(function (es) {
+    es.forEach(function (e) { var cv = e.target.querySelector("canvas"); if (e.isIntersecting) cv.__start(); else cv.__stop(); }); });
   samples.forEach(function (s) {
-    var f = document.createElement("figure"), cv = renderArtisticQr(s[0], 800, {still: true, night: s[1], time: s[2]});
+    var f = document.createElement("figure"), cv = renderArtisticQr(s[0], 800, {night: s[1], motion: true, fps: 20});
     f.appendChild(cv); var c = document.createElement("figcaption"); c.textContent = (s[1] ? "night · " : "day · ") + s[0]; f.appendChild(c); grid.appendChild(f);
+    if (seen) seen.observe(f);
   });
 </script>
 </body>

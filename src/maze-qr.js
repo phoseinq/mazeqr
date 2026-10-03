@@ -344,7 +344,8 @@ function mazeSim(L) {
   function hopNb(c) { var out = []; [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (d) { var q = [c[0] + d[0], c[1] + d[1]], q2 = [c[0] + 2 * d[0], c[1] + 2 * d[1]];
       if (q[0] < 0 || q[1] < 0 || q[0] >= n || q[1] >= n) return;
       if (ok[key(q)] && comp[key(q)] === comp[key(c)]) out.push(q);                                   // over a low wall
-      else if (L.M.dark[q[0]][q[1]] && !L.role[q[0]][q[1]] && q2[0] >= 0 && q2[1] >= 0 && q2[0] < n && q2[1] < n && ok[key(q2)] && nb(q2).length) out.push(q2); });   // over a hedge
+      else if (L.M.dark[q[0]][q[1]] && !L.role[q[0]][q[1]] && q2[0] >= 0 && q2[1] >= 0 && q2[0] < n && q2[1] < n && ok[key(q2)] && nb(q2).length &&
+        gated[comp[key(q2)]]) out.push(q2); });   // over a hedge, never into a pocket with no gate (they would pace it for ever)
     return out; }
   function bfsHop(from) { var d = {}, par = {}, q = [from]; d[key(from)] = 0;
     for (var i = 0; i < q.length; i++) { var cc = q[i], dd = d[key(cc)];
@@ -361,6 +362,7 @@ function mazeSim(L) {
     if (o) { var gt = {c: c, o: o}; gates.push(gt); gateAt[key(c)] = gt; gated[comp[key(c)]] = 1; } });
   var big = -1; sizes.forEach(function (z, i) { if (gated[i] && (big < 0 || z > sizes[big])) big = i; });
   var homeCells = L.cells.filter(function (c) { return ok[key(c)] && gated[comp[key(c)]] && nb(c).length; });
+  var gatedSize = 0; sizes.forEach(function (z, i) { if (gated[i]) gatedSize += z; });
   var bigCells = homeCells.filter(function (c) { return comp[key(c)] === big; });
   if (bigCells.length < 20 || !gates.length) return null;
   function bfs(from) { var d = {}, par = {}, q = [from]; d[key(from)] = 0;
@@ -392,7 +394,7 @@ function mazeSim(L) {
   function route0(from, to) {                                        // round the garden, by the shorter way
     var a = sideOf(from[0], from[1]), b = sideOf(to[0], to[1]), cw = (b - a + 4) % 4, path = [];
     if (cw === 2 && rnd() < .5) cw = -2; else if (cw === 3) cw = -1;
-    for (var k = 0; k !== cw; k += cw > 0 ? 1 : -1) path.push(CORNER[cw > 0 ? (a + k) % 4 : (a - k + 3) % 4].slice());
+    for (var k = 0; k !== cw; k += cw > 0 ? 1 : -1) path.push(CORNER[cw > 0 ? (a + k) % 4 : (a + k + 7) % 4].slice());   // k counts down going anticlockwise
     path.push(to); return path; }
   function drift(seed, t) { return Math.sin(t * .37 + seed) * .5 + Math.sin(t * .83 + seed * 2.3) * .3 + Math.sin(t * 1.9 + seed * .7) * .2; }
 
@@ -406,8 +408,9 @@ function mazeSim(L) {
   function through(p, from) {                                        // a gate on the far side of their island, or its far end
     var mp = bfs(p.a), own = from ? key(from) : -1, far = gates.filter(function (g4) { return key(g4.c) !== own && mp.d[key(g4.c)] != null && mp.d[key(g4.c)] >= 10; });
     if (far.length) { far.sort(function (a, b) { return mp.d[key(b.c)] - mp.d[key(a.c)]; }); p.goal = far[Math.floor(rnd() * Math.min(2, far.length))].c; p.explore = null; return; }
-    var best = null, bd = -1; for (var kk in mp.d) if (mp.d[kk] > bd) { bd = mp.d[kk]; best = kk; }
-    if (best != null && bd > 3) { p.explore = [Math.floor(+best / n), +best % n]; p.goal = null; } }
+    var bd = -1, kk; for (kk in mp.d) bd = Math.max(bd, mp.d[kk]);
+    var deep = []; for (kk in mp.d) if (mp.d[kk] > 3 && mp.d[kk] >= bd * .6) deep.push(+kk);           // somewhere deep in, not all to the one far end
+    if (deep.length) { var best = deep[Math.floor(rnd() * deep.length)]; p.explore = [Math.floor(best / n), best % n]; p.goal = null; } }
   function count(m) { var c = 0; people.forEach(function (q) { if (q.mode === m || q[m]) c++; }); return c; }
   function doorPt(dr) { var dd = DOUT - .05; return dr[0] === 0 ? [dr[1] * n, -dd] : dr[0] === 1 ? [n + dd, dr[1] * n] : [-dd, dr[1] * n]; }
   function isDay() { return typeof document === "undefined" || document.documentElement.getAttribute("data-theme") !== "dark"; }
@@ -435,7 +438,8 @@ function mazeSim(L) {
     for (var i = 0; i < q.length && i < 4000; i++) { if (gateAt[key(q[i])]) return q[i];
       nb(q[i]).forEach(function (m) { if (!seen[key(m)]) { seen[key(m)] = 1; q.push(m); } }); } return null; }
   function inside() { var k = 0; people.forEach(function (p) { if (p.mode === "maze" || p.gone) k++; }); return k; }
-  function mdist(c) { var best = null; monsters.forEach(function (M) { var v = M.map.d[key(c)]; if (v != null && (best == null || v < best)) best = v; }); return best; }
+  // how far the nearest monster is; one that is eating is no threat, the others run past it
+  function mdist(c) { var best = null; monsters.forEach(function (M) { var v = M.eat > 0 ? null : M.map.d[key(c)]; if (v != null && (best == null || v < best)) best = v; }); return best; }
   function toward(p, pt, sp, dt) {                                    // move the goal point along, true when there
     var dx = pt[0] - p.tx, dy = pt[1] - p.ty, d = Math.hypot(dx, dy), st = sp * dt;
     if (d <= st) { p.tx = pt[0]; p.ty = pt[1]; return true; }
@@ -537,20 +541,25 @@ function mazeSim(L) {
           if (taken(t, p) && (p.yield || 0) < 3) { p.yield = (p.yield || 0) + 1; p.want = t; p.b = p.a; p.f = 1; p.wait = .3 + rnd() * .3; return; } p.yield = 0; p.b = t; return; } }
       if (!p.flee) { p.panic = false; p.brave = null; }
       if (p.flee) {
-        var me = safeBfs(p.a, nb), goal2 = null, gsc = -1e9;
-        for (var kc in me.d) { var dm2 = null; monsters.forEach(function (M) { var v = M.map.d[kc]; if (v != null && (dm2 == null || v < dm2)) dm2 = v; });
-          var lead = (dm2 == null ? 40 : dm2) - me.d[kc] * 1.1, sc2 = lead + (gateAt[kc] && lead > 1 ? 8 : 0) + (dm2 == null ? 0 : Math.min(dm2, 30) * .15);
+        var me = safeBfs(p.a, nb), goal2 = null, gsc = -1e9, alt2 = null, gsc2 = -1e9, crowd = {};
+        people.forEach(function (q) { if (q === p || q.mode !== "maze" || q.gone) return;          // where the others are: everyone fleeing to one spot is a heap
+          [q.a, q.b].forEach(function (c) { [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (d) { var k = (c[0] + d[0]) * n + c[1] + d[1]; crowd[k] = (crowd[k] || 0) + (d[0] || d[1] ? .5 : 1); }); }); });
+        for (var kc in me.d) { var dm2 = null; monsters.forEach(function (M) { var v = M.eat > 0 ? null : M.map.d[kc]; if (v != null && (dm2 == null || v < dm2)) dm2 = v; });
+          var lead = (dm2 == null ? 40 : dm2) - me.d[kc] * 1.1, sc2 = lead + (gateAt[kc] && lead > 1 ? 8 : 0) + (dm2 == null ? 0 : Math.min(dm2, 30) * .15) - (crowd[kc] || 0) * 3;
+          if (+kc !== key(p.a) && sc2 > gsc2) { gsc2 = sc2; alt2 = kc; }
           if (sc2 > gsc) { gsc = sc2; goal2 = kc; } }
+        if (goal2 != null && +goal2 === key(p.a) && crowd[goal2] >= 1 && alt2 != null) goal2 = alt2;   // someone is already standing here: the next best
         p.panic = gsc < 1.5;
         if (p.panic && (p.brave == null ? (p.brave = rnd() < .55) : p.brave)) {   // cornered: some find the nerve to go over the walls
           var me2 = safeBfs(p.a, hopNb), g3 = null, s3 = -1e9;
-          for (var kd in me2.d) { var dm3 = null; monsters.forEach(function (M) { var v = M.map.d[kd]; if (v != null && (dm3 == null || v < dm3)) dm3 = v; });
+          for (var kd in me2.d) { var dm3 = null; monsters.forEach(function (M) { var v = M.eat > 0 ? null : M.map.d[kd]; if (v != null && (dm3 == null || v < dm3)) dm3 = v; });
             var ld = (dm3 == null ? 40 : dm3) - me2.d[kd] * 1.3; if (ld > s3) { s3 = ld; g3 = kd; } }
           if (g3 != null && +g3 !== key(p.a) && s3 > gsc) { var t3 = +g3, c3 = [Math.floor(t3 / n), t3 % n];
             while (me2.par[key(c3)] && key(me2.par[key(c3)]) !== key(p.a)) c3 = me2.par[key(c3)];
             p.b = c3; p.hop = !linked(p.a, c3); p.panic = s3 < 1.5; return; } }
         if (goal2 != null && +goal2 !== key(p.a)) { var t2 = +goal2, cell = [Math.floor(t2 / n), t2 % n];
           while (me.par[key(cell)] && key(me.par[key(cell)]) !== key(p.a)) cell = me.par[key(cell)]; p.b = cell; }
+        else if (goal2 != null && !(crowd[goal2] >= 1)) { p.b = p.a; p.f = 1; p.wait = .3 + rnd() * .3; }    // already in the safest spot: hold it, not pace to and fro
         else { var best = -1; o.forEach(function (c) { var v = mdist(c); v = v == null ? 1e9 : v + rnd() * .5; if (v > best) { best = v; p.b = c; } }); }
       }
       else {
@@ -582,7 +591,12 @@ function mazeSim(L) {
       if (p.outT <= 0 && p.path.length) p.path = []; }
     if (p.mode === "out" && !p.path.length) {
       if (p.outT <= 0 && gates.length) { var near = gates.slice().sort(function (a, b) { var A = gateOut(a), B = gateOut(b);
-          return Math.hypot(A[0] - p.tx, A[1] - p.ty) - Math.hypot(B[0] - p.tx, B[1] - p.ty); }), g2 = near[Math.floor(rnd() * Math.min(3, near.length))];
+          return Math.hypot(A[0] - p.tx, A[1] - p.ty) - Math.hypot(B[0] - p.tx, B[1] - p.ty); }), busy = {}, inn = 1;
+        people.forEach(function (q) { if (q.mode === "maze" && !q.gone) { busy[comp[key(q.a)]] = (busy[comp[key(q.a)]] || 0) + 1; inn++; } });
+        // a near gate whose island is not past its share of the crowd (a small island with many gates would swallow everyone)
+        var room = near.filter(function (g6) { var c6 = comp[key(g6.c)]; return (busy[c6] || 0) < inn * sizes[c6] / gatedSize * 1.3 + .5; });
+        if (!room.length) room = near;
+        var g2 = room[Math.floor(rnd() * Math.min(2, room.length))];
         p.mode = "enter"; p.gate = g2; p.path = route([p.tx, p.ty], gateOut(g2)); p.path.push([g2.c[1] + .5, g2.c[0] + .5]); }
       else { var free = rnd() < .65 ? seats.filter(function (st) { return !st.who; }) : [], er = rnd();
         if (!isDay() && er < .3 && count("home") + count("goHome") < 4) { var dr = MAZE_DOORS[Math.floor(rnd() * MAZE_DOORS.length)], dp = doorPt(dr);   // home for a bit
