@@ -1,0 +1,42 @@
+name: Publish to GitHub Packages
+
+# The same package as on npmjs, also on GitHub's own registry, so it shows under "Packages" on
+# the repo page. Runs on every published release, or by hand for an existing tag. Uses the
+# workflow's own GITHUB_TOKEN: no personal token is stored anywhere.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, e.g. v1.0.0"
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: "@phoseinq"
+      - run: npm ci
+      - name: The tag matches package.json
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          test "${tag#v}" = "$(node -p "require('./package.json').version")"
+      - run: npm run build
+      - run: npm test
+      - name: Publish
+        run: npm publish --registry=https://npm.pkg.github.com --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
