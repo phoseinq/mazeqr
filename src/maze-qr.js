@@ -518,7 +518,7 @@ function mazeSim(L) {
       p.prevDir = [p.b[0] - p.a[0], p.b[1] - p.a[1]]; p.prev = p.a; p.a = p.b; p.f = 0;
       p.hop = false; p.want = null;
       var o = nb(p.a), d = mdist(p.a), gt = gateAt[key(p.a)]; p.flee = !rage && d != null && d < cfg.FLEE_DISTANCE;
-      p.fleeStep = p.flee;
+      p.fleeStep = p.flee; if (!p.flee) p.vaulted = false;            // a new chase, a new chance to go over a hedge
       p.hunt = !!rage && d != null && d < 18;
       if (p.hunt && o.length) { var bh = 1e9; o.forEach(function (c) { var v = mdist(c); v = v == null ? 1e9 : v + rnd() * .3; if (v < bh) { bh = v; p.b = c; } }); return; }
       if (p.flee) p.like = Math.min(1, p.like + .08);                   // chased: the garden gains
@@ -539,7 +539,7 @@ function mazeSim(L) {
         if (mp.d[key(t)] == null) p.goal = null;
         else { while (mp.par[key(t)] && key(mp.par[key(t)]) !== key(p.a)) t = mp.par[key(t)];
           if (taken(t, p) && (p.yield || 0) < 3) { p.yield = (p.yield || 0) + 1; p.want = t; p.b = p.a; p.f = 1; p.wait = .3 + rnd() * .3; return; } p.yield = 0; p.b = t; return; } }
-      if (!p.flee) { p.panic = false; p.brave = null; }
+      if (!p.flee) p.panic = false;
       if (p.flee) {
         var me = safeBfs(p.a, nb), goal2 = null, gsc = -1e9, alt2 = null, gsc2 = -1e9, crowd = {};
         people.forEach(function (q) { if (q === p || q.mode !== "maze" || q.gone) return;          // where the others are: everyone fleeing to one spot is a heap
@@ -550,13 +550,13 @@ function mazeSim(L) {
           if (sc2 > gsc) { gsc = sc2; goal2 = kc; } }
         if (goal2 != null && +goal2 === key(p.a) && crowd[goal2] >= 1 && alt2 != null) goal2 = alt2;   // someone is already standing here: the next best
         p.panic = gsc < 1.5;
-        if (p.panic && (p.brave == null ? (p.brave = rnd() < .55) : p.brave)) {   // cornered: some find the nerve to go over the walls
+        if (!p.vaulted) {                                                // chased: once per chase they may go over a hedge, when that beats the paths or the crowd
           var me2 = safeBfs(p.a, hopNb), g3 = null, s3 = -1e9;
           for (var kd in me2.d) { var dm3 = null; monsters.forEach(function (M) { var v = M.eat > 0 ? null : M.map.d[kd]; if (v != null && (dm3 == null || v < dm3)) dm3 = v; });
-            var ld = (dm3 == null ? 40 : dm3) - me2.d[kd] * 1.3; if (ld > s3) { s3 = ld; g3 = kd; } }
-          if (g3 != null && +g3 !== key(p.a) && s3 > gsc) { var t3 = +g3, c3 = [Math.floor(t3 / n), t3 % n];
+            var ld = (dm3 == null ? 40 : dm3) - me2.d[kd] * 1.3 - (crowd[kd] || 0) * 3; if (ld > s3) { s3 = ld; g3 = kd; } }
+          if (g3 != null && +g3 !== key(p.a) && (s3 > gsc || ((crowd[key(p.a)] || 0) >= 1 && s3 > 1))) { var t3 = +g3, c3 = [Math.floor(t3 / n), t3 % n];
             while (me2.par[key(c3)] && key(me2.par[key(c3)]) !== key(p.a)) c3 = me2.par[key(c3)];
-            p.b = c3; p.hop = !linked(p.a, c3); p.panic = s3 < 1.5; return; } }
+            p.b = c3; p.hop = !linked(p.a, c3); if (p.hop) p.vaulted = true; p.panic = s3 < 1.5; return; } }
         if (goal2 != null && +goal2 !== key(p.a)) { var t2 = +goal2, cell = [Math.floor(t2 / n), t2 % n];
           while (me.par[key(cell)] && key(me.par[key(cell)]) !== key(p.a)) cell = me.par[key(cell)]; p.b = cell; }
         else if (goal2 != null && !(crowd[goal2] >= 1)) { p.b = p.a; p.f = 1; p.wait = .3 + rnd() * .3; }    // already in the safest spot: hold it, not pace to and fro
