@@ -125,7 +125,7 @@
 <main class="wrap">
   <div class="hero">
     <h1>A real QR code, drawn as a living maze.</h1>
-    <p>People wander the corridors, a monster hunts them, a forest grows round it by day and a city by night, and your phone still reads it. Type anything and scan.</p>
+    <p>People wander the corridors, a monster hunts them, a forest grows round it by day and a city by night, and it is built to stay readable while it moves. Type anything and scan.</p>
   </div>
 
   <form class="bar" id="form" autocomplete="off">
@@ -226,7 +226,7 @@ var png = still.toDataURL("image/png");</code></pre></div>
         <li><b>Screens first.</b> For print, export a <code>still</code> PNG at high resolution and test it with a phone before printing.</li>
         <li><b>Always dark on light.</b> Even at night the code keeps dark modules on light paths: inverted codes read badly on many phones.</li>
         <li><b>CPU.</b> A live canvas redraws at 30 fps. Lower <code>fps</code>, call <code>__stop()</code> when it is off screen, or use <code>still</code> for many codes on one page.</li>
-        <li><b>Decoders differ.</b> ZXing-based readers (most phone cameras) read 99%+; on the harshest test images ZBar and quirc drop to about 89–93%.</li>
+        <li><b>Decoders differ.</b> On the test set ZXing reads 99.3%; on the harshest test images ZBar and quirc drop to about 89–93%. These are synthetic distortions, not a field test with phone cameras.</li>
       </ul>
     </div>
   </div>

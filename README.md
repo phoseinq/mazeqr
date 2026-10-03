@@ -3,7 +3,7 @@
 # Maze QR
 
 **A real, scannable QR code drawn as a living maze.**
-People wander it, a monster hunts them, and your phone still reads it.
+People wander it, a monster hunts them, and the code is built to stay readable while it moves.
 
 [![CI](https://github.com/phoseinq/mazeqr/actions/workflows/ci.yml/badge.svg)](https://github.com/phoseinq/mazeqr/actions/workflows/ci.yml)
 [![Live demo](https://img.shields.io/badge/demo-live-2a9d8f)](https://phoseinq.github.io/mazeqr/demo/)
@@ -91,7 +91,7 @@ failed for every code: clumps of up to 6 minutes, crowds stuck 18–68% of the t
 
 - **Pixels per module.** The full art needs about 12 screen pixels per module. Text length sets the QR version: a 30-character link is 29×29 modules and gets the full art from a canvas of about 520 px, while a 100-character link is 49×49 and needs about 800 px. **Short links look best.**
 - **Strict colours.** Dark cores must stay at or below 0.16 relative luminance and light ones at or above 0.91 (0.76 at night). Brand palettes have to fit inside those limits, and the code is always dark-on-light, even at night.
-- **Decoders differ.** ZXing-family readers, which most phone cameras use, read 99%+. On rough camera-like images quirc drops to 92.5%, and on heavily degraded ones ZBar drops to 89%. The camera tests are synthetic: real phones under glare are not part of CI.
+- **Decoders differ.** The ZXing decoder reads 99.3% of the test set. On rough camera-like images quirc drops to 92.5%, and on heavily degraded ones ZBar drops to 89%. The camera tests are synthetic: real phones under glare are not part of CI.
 - **CPU and battery.** A live canvas repaints at 30 fps on the main thread. One or two per page are fine; for galleries, lower `fps`, pause off-screen canvases (the gallery does), or use `still`.
 - **Shared crowd.** Canvases showing the same text share one simulation (that is how the icon follows the same monster). The crowd's day/night behaviour follows the page theme, so a canvas forced to `night: true` on a light page shows daytime activities like swimming.
 - **Screens first.** Print isn't validated. Export a high-resolution `still` and test it with a phone before printing.
