@@ -174,12 +174,12 @@
       <div class="l-en">
       <ol class="steps">
         <li><b><svg class="i"><use href="#i-down"/></svg>1. Add one script</b><code>mazeqr.min.js</code> from jsDelivr (below), npm (<code>npm i @phoseinq/mazeqr</code>) or the latest release.</li>
-        <li><b><svg class="i"><use href="#i-code"/></svg>2. Pin the version</b><code>@1.0.0</code>, not <code>@main</code>: later changes can't break your page.</li>
+        <li><b><svg class="i"><use href="#i-code"/></svg>2. Stay on 1.x</b><code>@1</code> always gets the latest 1.x; a breaking 2.0 never arrives on its own.</li>
         <li><b><svg class="i"><use href="#i-wand"/></svg>3. Draw</b><code>renderArtisticQr(text, size)</code> returns a live canvas.</li>
       </ol>
       <h3>On a web page</h3>
       <div class="code"><pre><code>&lt;div id="qr"&gt;&lt;/div&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/phoseinq/mazeqr@1.0.0/dist/mazeqr.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@phoseinq/mazeqr@1/dist/mazeqr.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   var canvas = renderArtisticQr("https://example.com/", 1000);
   canvas.style.width = "100%";
@@ -204,12 +204,12 @@ var png = still.toDataURL("image/png");</code></pre></div>
       <div class="l-fa">
       <ol class="steps">
         <li><b><svg class="i"><use href="#i-down"/></svg>۱. یک اسکریپت اضافه کنید</b><code>mazeqr.min.js</code> را از jsDelivr (پایین)، npm (<code>npm i @phoseinq/mazeqr</code>) یا آخرین Release بردارید.</li>
-        <li><b><svg class="i"><use href="#i-code"/></svg>۲. نسخه را ثابت کنید</b><code>@1.0.0</code> و نه <code>@main</code>؛ تا تغییرات بعدی صفحه‌ی شما را خراب نکند.</li>
+        <li><b><svg class="i"><use href="#i-code"/></svg>۲. روی 1.x بمانید</b><code>@1</code> همیشه آخرین نسخه‌ی 1.x را می‌گیرد؛ نسخه‌ی 2 که ممکن است ناسازگار باشد هیچ‌وقت خودکار نمی‌آید.</li>
         <li><b><svg class="i"><use href="#i-wand"/></svg>۳. بکشید</b><code>renderArtisticQr(text, size)</code> یک canvas زنده برمی‌گرداند.</li>
       </ol>
       <h3>روی یک صفحه‌ی وب</h3>
       <div class="code"><pre><code>&lt;div id="qr"&gt;&lt;/div&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/phoseinq/mazeqr@1.0.0/dist/mazeqr.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@phoseinq/mazeqr@1/dist/mazeqr.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   var canvas = renderArtisticQr("https://example.com/", 1000);
   canvas.style.width = "100%";

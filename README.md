@@ -32,7 +32,7 @@ One script tag from a CDN, one function:
 
 ```html
 <div id="qr"></div>
-<script src="https://cdn.jsdelivr.net/gh/phoseinq/mazeqr@1.0.0/dist/mazeqr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@phoseinq/mazeqr@1/dist/mazeqr.min.js"></script>
 <script>
   var canvas = renderArtisticQr("https://example.com/", 1000);   // a live <canvas>
   canvas.style.width = "100%";
@@ -40,7 +40,7 @@ One script tag from a CDN, one function:
 </script>
 ```
 
-Pin the version (`@1.0.0`), not `@main`: a pinned file is cached for good and later changes to the repo can't break your page.
+`@1` always serves the latest 1.x: fixes and new features arrive on their own, but a breaking 2.0 never does. For a file that never changes, pin an exact version such as `@1.0.0`.
 
 **With npm** (for bundlers such as Vite or webpack; TypeScript types included):
 
@@ -53,8 +53,6 @@ import { renderArtisticQr, mazeCheer } from "@phoseinq/mazeqr";
 
 document.getElementById("qr").appendChild(renderArtisticQr("https://example.com/", 1000));
 ```
-
-From npm through a CDN: `https://cdn.jsdelivr.net/npm/@phoseinq/mazeqr@1.0.0/dist/mazeqr.min.js`.
 
 **Or self-host:** download `mazeqr.min.js` from the [latest release](https://github.com/phoseinq/mazeqr/releases/latest) and load it with a plain `<script>` tag.
 
