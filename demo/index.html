@@ -54,7 +54,7 @@
   #icon canvas { width: 150px; height: 150px; border-radius: 16px; box-shadow: 0 8px 22px -10px rgba(0,0,0,.55); }
   .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 6px; }
   dl.facts { margin: 10px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 14px; }
-  dl.facts dt { color: var(--muted); } dl.facts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  dl.facts dt { color: var(--muted); } dl.facts dd { margin: 0; text-align: end; font-variant-numeric: tabular-nums; }
   .hint { font-size: 13px; color: var(--muted); display: flex; gap: 8px; }
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--fg); color: var(--bg);
     padding: 9px 14px; border-radius: 10px; font-size: 14px; transition: .25s; pointer-events: none; }
@@ -85,6 +85,14 @@
   footer { border-top: 1px solid var(--line); padding: 20px 0 36px; color: var(--muted); font-size: 13px; }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
 
+  .lang { font-weight: 700; font-size: 13px; min-width: 38px; justify-content: center; }
+  html[lang="fa"] body { font-family: Vazirmatn, Tahoma, "Segoe UI", system-ui, sans-serif; }
+  html[lang="fa"] .l-en, html:not([lang="fa"]) .l-fa { display: none !important; }
+  pre, code, #text { direction: ltr; unicode-bidi: isolate; } pre { text-align: left; }
+  [dir="rtl"] nav { margin-left: 0; margin-right: auto; }
+  [dir="rtl"] .panel ul { padding-left: 0; padding-right: 20px; }
+  [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+
   @media (max-width: 760px) { .stage { grid-template-columns: 1fr; } aside { grid-template-columns: 1fr 1fr; } nav a span { display: none; } }
   @media (max-width: 480px) { aside { grid-template-columns: 1fr; } .bar .btn:not(.primary) span { display: none; } .bar .btn { padding: 10px 12px; } .bar .btn.primary { flex: 1; justify-content: center; } }
 </style>
@@ -114,9 +122,10 @@
   <div class="wrap">
     <a class="brand" href="#"><span class="mark"><svg class="i"><use href="#i-maze"/></svg></span>Maze QR</a>
     <nav>
-      <a href="#docs"><svg class="i"><use href="#i-book"/></svg><span>Docs</span></a>
-      <a href="gallery.html"><svg class="i"><use href="#i-grid"/></svg><span>Gallery</span></a>
+      <a href="#docs"><svg class="i"><use href="#i-book"/></svg><span data-i18n="docs">Docs</span></a>
+      <a href="gallery.html"><svg class="i"><use href="#i-grid"/></svg><span data-i18n="gallery">Gallery</span></a>
       <a href="https://github.com/phoseinq/mazeqr"><svg class="i"><use href="#i-git"/></svg><span>GitHub</span></a>
+      <button class="btn icon lang" id="lang" title="English / فارسی" aria-label="فارسی">فا</button>
       <button class="btn icon" id="theme" aria-label="Switch to night" title="Day / night"><svg class="i"><use href="#i-moon"/></svg></button>
     </nav>
   </div>
@@ -124,40 +133,41 @@
 
 <main class="wrap">
   <div class="hero">
-    <h1>A real QR code, drawn as a living maze.</h1>
-    <p>People wander the corridors, a monster hunts them, a forest grows round it by day and a city by night, and it is built to stay readable while it moves. Type anything and scan.</p>
+    <h1 data-i18n="h1">A real QR code, drawn as a living maze.</h1>
+    <p data-i18n="lead">People wander the corridors, a monster hunts them, a forest grows round it by day and a city by night, and it is built to stay readable while it moves. Type anything and scan.</p>
   </div>
 
   <form class="bar" id="form" autocomplete="off">
     <label class="field"><svg class="i"><use href="#i-link"/></svg>
-      <input id="text" type="text" value="https://pvboy.dev/blog/maze-qr-living-qr-code" aria-label="Text or link to encode" spellcheck="false"></label>
-    <button class="btn primary" type="submit"><svg class="i"><use href="#i-wand"/></svg><span>Draw</span></button>
-    <button class="btn" type="button" id="react" title="The reaction a page plays when its link is copied"><svg class="i"><use href="#i-spark"/></svg><span>React</span></button>
-    <button class="btn" type="button" id="png" title="Save this frame as a PNG"><svg class="i"><use href="#i-down"/></svg><span>Save PNG</span></button>
+      <input id="text" type="text" value="https://pvboy.dev/blog/maze-qr-living-qr-code" data-i18n-aria="input" aria-label="Text or link to encode" spellcheck="false"></label>
+    <button class="btn primary" type="submit"><svg class="i"><use href="#i-wand"/></svg><span data-i18n="draw">Draw</span></button>
+    <button class="btn" type="button" id="react" data-i18n-title="reactT" title="The reaction a page plays when its link is copied"><svg class="i"><use href="#i-spark"/></svg><span data-i18n="react">React</span></button>
+    <button class="btn" type="button" id="png" data-i18n-title="pngT" title="Save this frame as a PNG"><svg class="i"><use href="#i-down"/></svg><span data-i18n="png">Save PNG</span></button>
   </form>
 
   <div class="stage">
     <div class="card" id="big"></div>
     <aside>
-      <div class="card" id="icon"><span class="label"><svg class="i"><use href="#i-eye"/></svg>Live icon</span><small class="hint">follows the monster</small></div>
-      <div class="card"><span class="label"><svg class="i"><use href="#i-grid"/></svg>This code</span><dl class="facts" id="facts"></dl></div>
-      <div class="card hint"><svg class="i"><use href="#i-phone"/></svg><span>Point your phone's camera at the maze: it reads like any QR code.</span></div>
+      <div class="card" id="icon"><span class="label"><svg class="i"><use href="#i-eye"/></svg><span data-i18n="icon">Live icon</span></span><small class="hint" data-i18n="follows">follows the monster</small></div>
+      <div class="card"><span class="label"><svg class="i"><use href="#i-grid"/></svg><span data-i18n="thisCode">This code</span></span><dl class="facts" id="facts"></dl></div>
+      <div class="card hint"><svg class="i"><use href="#i-phone"/></svg><span data-i18n="phone">Point your phone's camera at the maze: it reads like any QR code.</span></div>
     </aside>
   </div>
 </main>
 
 <section class="docs" id="docs">
   <div class="wrap">
-    <h2>Docs</h2>
-    <p class="lead">One script, one function. No server, no CDN, no build step.</p>
+    <h2 data-i18n="docs">Docs</h2>
+    <p class="lead" data-i18n="docsLead">One script, one function. No server, no CDN, no build step.</p>
     <div class="tabs" role="tablist">
-      <button class="tab" role="tab" aria-selected="true" aria-controls="p-use" id="t-use"><svg class="i"><use href="#i-code"/></svg>Use it</button>
-      <button class="tab" role="tab" aria-selected="false" aria-controls="p-api" id="t-api" tabindex="-1"><svg class="i"><use href="#i-sliders"/></svg>API &amp; options</button>
-      <button class="tab" role="tab" aria-selected="false" aria-controls="p-how" id="t-how" tabindex="-1"><svg class="i"><use href="#i-shield"/></svg>How it stays readable</button>
-      <button class="tab" role="tab" aria-selected="false" aria-controls="p-limits" id="t-limits" tabindex="-1"><svg class="i"><use href="#i-alert"/></svg>Limits</button>
+      <button class="tab" role="tab" aria-selected="true" aria-controls="p-use" id="t-use"><svg class="i"><use href="#i-code"/></svg><span data-i18n="tUse">Use it</span></button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="p-api" id="t-api" tabindex="-1"><svg class="i"><use href="#i-sliders"/></svg><span data-i18n="tApi">API &amp; options</span></button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="p-how" id="t-how" tabindex="-1"><svg class="i"><use href="#i-shield"/></svg><span data-i18n="tHow">How it stays readable</span></button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="p-limits" id="t-limits" tabindex="-1"><svg class="i"><use href="#i-alert"/></svg><span data-i18n="tLimits">Limits</span></button>
     </div>
 
     <div class="panel" role="tabpanel" id="p-use" aria-labelledby="t-use">
+      <div class="l-en">
       <ol class="steps">
         <li><b><svg class="i"><use href="#i-down"/></svg>1. Copy two files</b><code>vendor/qrcode-generator.min.js</code> and <code>src/maze-qr.js</code> from the repo.</li>
         <li><b><svg class="i"><use href="#i-code"/></svg>2. Add the scripts</b>Plain <code>&lt;script&gt;</code> tags, before your own code.</li>
@@ -180,9 +190,35 @@
 var png = still.toDataURL("image/png");</code></pre></div>
       <h3>The "copied" reaction</h3>
       <div class="code"><pre><code>navigator.clipboard.writeText(url).then(function () { mazeCheer(url); });</code></pre></div>
+      </div>
+      <div class="l-fa">
+      <ol class="steps">
+        <li><b><svg class="i"><use href="#i-down"/></svg>۱. دو فایل را کپی کنید</b><code>vendor/qrcode-generator.min.js</code> و <code>src/maze-qr.js</code> را از ریپو بردارید.</li>
+        <li><b><svg class="i"><use href="#i-code"/></svg>۲. اسکریپت‌ها را اضافه کنید</b>با تگ‌های ساده‌ی <code>&lt;script&gt;</code>، قبل از کد خودتان.</li>
+        <li><b><svg class="i"><use href="#i-wand"/></svg>۳. بکشید</b><code>renderArtisticQr(text, size)</code> یک canvas زنده برمی‌گرداند.</li>
+      </ol>
+      <h3>روی یک صفحه‌ی وب</h3>
+      <div class="code"><pre><code>&lt;div id="qr"&gt;&lt;/div&gt;
+&lt;script src="vendor/qrcode-generator.min.js"&gt;&lt;/script&gt;
+&lt;script src="src/maze-qr.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  var canvas = renderArtisticQr("https://example.com/", 1000);
+  canvas.style.width = "100%";
+  document.getElementById("qr").appendChild(canvas);
+&lt;/script&gt;</code></pre></div>
+      <h3>روز و شب</h3>
+      <p>اگر <code>night</code> را ندهید، هزارتو از <code>&lt;html data-theme="dark"&gt;</code> پیروی می‌کند و وقتی عوض شود، آرام به شب می‌رود:</p>
+      <div class="code"><pre><code>document.documentElement.setAttribute("data-theme", "dark");   // the maze turns to night by itself</code></pre></div>
+      <h3>یک تصویر ثابت (PNG)</h3>
+      <div class="code"><pre><code>var still = renderArtisticQr("https://example.com/", 1200, {still: true, night: false});
+var png = still.toDataURL("image/png");</code></pre></div>
+      <h3>واکنش «کپی شد»</h3>
+      <div class="code"><pre><code>navigator.clipboard.writeText(url).then(function () { mazeCheer(url); });</code></pre></div>
+      </div>
     </div>
 
     <div class="panel" role="tabpanel" id="p-api" aria-labelledby="t-api" hidden>
+      <div class="l-en">
       <h3><code>renderArtisticQr(text, size, options)</code></h3>
       <p>Returns a <code>&lt;canvas&gt;</code> of <code>size</code> × <code>size</code> pixels, or <code>null</code> if the text is too long for a QR code.</p>
       <div class="table"><table>
@@ -207,9 +243,37 @@ var png = still.toDataURL("image/png");</code></pre></div>
           <tr><td><code>MAZE</code></td><td>All tunables: error correction, quiet zone, colours, people count, speeds…</td></tr>
         </tbody>
       </table></div>
+      </div>
+      <div class="l-fa">
+      <h3><code>renderArtisticQr(text, size, options)</code></h3>
+      <p>یک <code>&lt;canvas&gt;</code> به اندازه‌ی <code>size</code> × <code>size</code> پیکسل برمی‌گرداند، یا اگر متن برای یک کد QR خیلی طولانی باشد <code>null</code>.</p>
+      <div class="table"><table>
+        <thead><tr><th>گزینه</th><th>پیش‌فرض</th><th>کارکرد</th></tr></thead>
+        <tbody>
+          <tr><td><code>night</code></td><td>از صفحه پیروی می‌کند</td><td><code>true</code> / <code>false</code> تم را ثابت می‌کند؛ اگر ندهید از <code>data-theme</code> پیروی می‌کند.</td></tr>
+          <tr><td><code>still</code></td><td><code>false</code></td><td>یک فریم می‌کشد و متوقف می‌شود.</td></tr>
+          <tr><td><code>motion</code></td><td><code>false</code></td><td>حتی وقتی سیستم «کاهش حرکت» خواسته، انیمیشن را اجرا می‌کند.</td></tr>
+          <tr><td><code>fps</code></td><td><code>30</code></td><td>نرخ فریم انیمیشن.</td></tr>
+          <tr><td><code>time</code></td><td>—</td><td>شبیه‌سازی را از این ثانیه شروع می‌کند (برای تصویر ثابتِ تکرارپذیر).</td></tr>
+          <tr><td><code>characters</code> / <code>props</code></td><td><code>true</code></td><td>با <code>false</code> آدم‌ها / درخت‌ها و نیمکت‌ها حذف می‌شوند.</td></tr>
+          <tr><td><code>thumb</code> + <code>lens</code></td><td>—</td><td>یک نمای کوچک زنده که دنبال هیولا می‌رود: <code>{thumb: true, lens: {mods: 13, size: 132}}</code>.</td></tr>
+          <tr><td><code>debug</code></td><td>—</td><td><code>{showReservedModules, showSafeCores, showConnectivity, showModuleGrid, hideArtwork}</code></td></tr>
+        </tbody>
+      </table></div>
+      <h3>توابع دیگر</h3>
+      <div class="table"><table>
+        <tbody>
+          <tr><td><code>mazeCheer(text)</code></td><td>واکنش را اجرا می‌کند: آدم‌ها می‌پرند، ماشین‌ها تصادف می‌کنند یا دزدان دریایی می‌جنگند.</td></tr>
+          <tr><td><code>canvas.__stop()</code> / <code>__start()</code></td><td>توقف و ادامه‌ی انیمیشن.</td></tr>
+          <tr><td><code>verifyCores(canvas)</code></td><td>بررسی می‌کند مرکز هر ماژول در محدوده‌ی رنگ بیتش باشد: <code>{bad, worst}</code>.</td></tr>
+          <tr><td><code>MAZE</code></td><td>همه‌ی تنظیمات: تصحیح خطا، حاشیه‌ی خالی، رنگ‌ها، تعداد آدم‌ها، سرعت‌ها…</td></tr>
+        </tbody>
+      </table></div>
+      </div>
     </div>
 
     <div class="panel" role="tabpanel" id="p-how" aria-labelledby="t-how" hidden>
+      <div class="l-en">
       <p>The bits come from <a href="https://github.com/kazuhikoarase/qrcode-generator">qrcode-generator</a>; the drawing never decides them. The art is a skin over a valid code:</p>
       <ul>
         <li><b>Dark modules become hedges, light ones become paths</b>, so the maze <em>is</em> the code.</li>
@@ -218,9 +282,21 @@ var png = still.toDataURL("image/png");</code></pre></div>
         <li><b>The quiet zone</b> stays clear; the scenery begins beyond it.</li>
       </ul>
       <p>Every push is tested with three decoders (ZXing, ZBar, quirc) on plain, degraded and camera-like images, and the crowd's behaviour is simulated for regressions.</p>
+      </div>
+      <div class="l-fa">
+      <p>بیت‌ها از <a href="https://github.com/kazuhikoarase/qrcode-generator">qrcode-generator</a> می‌آیند و نقاشی هیچ‌وقت آن‌ها را تعیین نمی‌کند. نقاشی پوسته‌ای روی یک کد معتبر است:</p>
+      <ul>
+        <li><b>ماژول‌های تیره پرچین و روشن‌ها مسیر می‌شوند</b>؛ پس هزارتو <em>خودِ</em> کد است.</li>
+        <li><b>مربع‌های بزرگ، خطوط زمان‌بندی، بیت‌های فرمت و نسخه</b> کامل و پرکنتراست کشیده می‌شوند و هیچ‌چیز از رویشان رد نمی‌شود.</li>
+        <li><b>هسته‌ی امن:</b> بعد از هر فریم، مرکز هر ماژولی که انیمیشن به آن دست زده به رنگ بیتش برمی‌گردد (روشنایی تیره ≤ 0.16 و روشن ≥ 0.91). آدمکی که از روی ماژول رد می‌شود فقط رنگش را کمی عوض می‌کند، نه مقدارش را.</li>
+        <li><b>حاشیه‌ی خالی</b> دور کد دست‌نخورده می‌ماند و منظره بعد از آن شروع می‌شود.</li>
+      </ul>
+      <p>هر push با سه دیکودر (ZXing، ZBar و quirc) روی تصاویر عادی، خراب‌شده و شبیه دوربین تست می‌شود و رفتار جمعیت هم شبیه‌سازی و بررسی می‌شود.</p>
+      </div>
     </div>
 
     <div class="panel" role="tabpanel" id="p-limits" aria-labelledby="t-limits" hidden>
+      <div class="l-en">
       <ul>
         <li><b>Size.</b> The art needs about 12 screen pixels per module. Smaller, it simplifies; below 5 it falls back to a plain code. Longer text makes a bigger code, which needs a bigger canvas.</li>
         <li><b>Screens first.</b> For print, export a <code>still</code> PNG at high resolution and test it with a phone before printing.</li>
@@ -228,21 +304,66 @@ var png = still.toDataURL("image/png");</code></pre></div>
         <li><b>CPU.</b> A live canvas redraws at 30 fps. Lower <code>fps</code>, call <code>__stop()</code> when it is off screen, or use <code>still</code> for many codes on one page.</li>
         <li><b>Decoders differ.</b> On the test set ZXing reads 99.3%; on the harshest test images ZBar and quirc drop to about 89–93%. These are synthetic distortions, not a field test with phone cameras.</li>
       </ul>
+      </div>
+      <div class="l-fa">
+      <ul>
+        <li><b>اندازه.</b> آرت کامل برای هر ماژول حدود 12 پیکسل صفحه لازم دارد. کوچک‌تر که شود ساده‌تر می‌شود و زیر 5 پیکسل به یک کد ساده برمی‌گردد. متن بلندتر کد بزرگ‌تری می‌سازد که canvas بزرگ‌تری می‌خواهد.</li>
+        <li><b>اول برای صفحه‌نمایش.</b> برای چاپ، یک PNG ثابت با کیفیت بالا بگیرید و قبل از چاپ با گوشی تستش کنید.</li>
+        <li><b>همیشه تیره روی روشن.</b> حتی شب، کد ماژول‌های تیره را روی مسیر روشن نگه می‌دارد؛ کدهای برعکس روی خیلی از گوشی‌ها بد خوانده می‌شوند.</li>
+        <li><b>پردازنده.</b> هر canvas زنده 30 بار در ثانیه دوباره کشیده می‌شود. <code>fps</code> را کم کنید، وقتی دیده نمی‌شود <code>__stop()</code> را صدا بزنید یا برای چند کد در یک صفحه از <code>still</code> استفاده کنید.</li>
+        <li><b>دیکودرها فرق دارند.</b> روی مجموعه‌ی تست، ZXing 99.3% را می‌خواند؛ روی سخت‌ترین تصاویر تست، ZBar و quirc به حدود 89 تا 93% می‌رسند. این‌ها اختلالات مصنوعی‌اند، نه آزمایش میدانی با دوربین گوشی.</li>
+      </ul>
+      </div>
     </div>
   </div>
 </section>
 
-<footer><div class="wrap"><span>MIT licence · QR bits by qrcode-generator (MIT)</span><a href="https://github.com/phoseinq/mazeqr">github.com/phoseinq/mazeqr</a></div></footer>
+<footer><div class="wrap"><span data-i18n="foot">MIT licence · QR bits by qrcode-generator (MIT)</span><a href="https://github.com/phoseinq/mazeqr">github.com/phoseinq/mazeqr</a></div></footer>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="../vendor/qrcode-generator.min.js"></script>
 <script src="../src/maze-qr.js"></script>
 <script>
   var big = null, icon = null, text = "", $ = function (id) { return document.getElementById(id); };
+  // English and Persian; the choice is kept (and ?lang=fa opens the page in Persian)
+  var I18N = {
+    en: {docs: "Docs", gallery: "Gallery", h1: "A real QR code, drawn as a living maze.",
+      lead: "People wander the corridors, a monster hunts them, a forest grows round it by day and a city by night, and it is built to stay readable while it moves. Type anything and scan.",
+      input: "Text or link to encode", draw: "Draw", react: "React", reactT: "The reaction a page plays when its link is copied", png: "Save PNG", pngT: "Save this frame as a PNG",
+      icon: "Live icon", follows: "follows the monster", thisCode: "This code", phone: "Point your phone's camera at the maze: it reads like any QR code.",
+      docsLead: "One script, one function. No server, no CDN, no build step.", tUse: "Use it", tApi: "API & options", tHow: "How it stays readable", tLimits: "Limits",
+      foot: "MIT licence · QR bits by qrcode-generator (MIT)", version: "Version", modules: "Modules", ppm: "Pixels / module", detail: "Detail", chars: "Characters",
+      tooLong: "Too long to fit in a QR code.", saved: "Saved this frame", copied: "Copied", copyFail: "Copy failed", copyCode: "Copy code",
+      toDay: "Switch to day", toNight: "Switch to night", other: "فا", otherName: "فارسی"},
+    fa: {docs: "مستندات", gallery: "گالری", h1: "یک کد QR واقعی، به شکل یک هزارتوی زنده.",
+      lead: "آدم‌ها در راهروها قدم می‌زنند، یک هیولا شکارشان می‌کند، روزها جنگل و شب‌ها شهر دورش جان می‌گیرد، و طوری ساخته شده که در حین حرکت خوانا بماند. هر چیزی تایپ کنید و اسکنش کنید.",
+      input: "متن یا لینکی که کد شود", draw: "بساز", react: "واکنش", reactT: "واکنشی که صفحه هنگام کپی شدن لینک نشان می‌دهد", png: "ذخیره‌ی PNG", pngT: "این فریم را به‌صورت PNG ذخیره کن",
+      icon: "آیکون زنده", follows: "دنبال هیولا می‌رود", thisCode: "این کد", phone: "دوربین گوشی را رو به هزارتو بگیرید؛ مثل هر کد QR دیگری خوانده می‌شود.",
+      docsLead: "یک اسکریپت، یک تابع. بدون سرور، بدون CDN و بدون build.", tUse: "استفاده", tApi: "API و گزینه‌ها", tHow: "چطور خوانا می‌ماند", tLimits: "محدودیت‌ها",
+      foot: "مجوز MIT · بیت‌های QR از qrcode-generator (MIT)", version: "نسخه", modules: "ماژول‌ها", ppm: "پیکسل هر ماژول", detail: "جزئیات", chars: "کاراکترها",
+      tooLong: "برای یک کد QR خیلی طولانی است.", saved: "این فریم ذخیره شد", copied: "کپی شد", copyFail: "کپی نشد", copyCode: "کپی کد",
+      toDay: "حالت روز", toNight: "حالت شب", other: "EN", otherName: "English"}
+  };
+  var lang = "en";
+  try { lang = new URLSearchParams(location.search).get("lang") || localStorage.getItem("mazeqr-lang") || "en"; } catch (e) {}
+  if (!I18N[lang]) lang = "en";
+  function t(k) { return I18N[lang][k]; }
+  function setLang(l) {
+    lang = l; var h = document.documentElement;
+    h.setAttribute("lang", l); h.setAttribute("dir", l === "fa" ? "rtl" : "ltr");
+    [].slice.call(document.querySelectorAll("[data-i18n]")).forEach(function (e) { e.textContent = t(e.getAttribute("data-i18n")); });
+    [].slice.call(document.querySelectorAll("[data-i18n-aria]")).forEach(function (e) { e.setAttribute("aria-label", t(e.getAttribute("data-i18n-aria"))); });
+    [].slice.call(document.querySelectorAll("[data-i18n-title]")).forEach(function (e) { e.title = t(e.getAttribute("data-i18n-title")); });
+    [].slice.call(document.querySelectorAll(".copy")).forEach(function (e) { e.setAttribute("aria-label", t("copyCode")); });
+    var b = $("lang"); b.textContent = t("other"); b.setAttribute("aria-label", t("otherName")); b.setAttribute("lang", l === "fa" ? "en" : "fa");
+    $("theme").setAttribute("aria-label", t(h.getAttribute("data-theme") === "dark" ? "toDay" : "toNight"));
+    facts(); if (!big && $("big").querySelector(".empty")) $("big").querySelector(".empty").textContent = t("tooLong");
+    try { localStorage.setItem("mazeqr-lang", l); } catch (e) {}
+  }
   function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("on"); }, 1600); }
   function facts() {
     var L = big && big.__layout;
-    $("facts").innerHTML = !L ? "" : [["Version", L.version], ["Modules", L.n + " × " + L.n], ["Pixels / module", L.px], ["Detail", L.level], ["Characters", text.length]]
+    $("facts").innerHTML = !L ? "" : [[t("version"), L.version], [t("modules"), L.n + " × " + L.n], [t("ppm"), L.px], [t("detail"), L.level], [t("chars"), text.length]]
       .map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>"; }).join("");
   }
   function draw() {
@@ -252,7 +373,7 @@ var png = still.toDataURL("image/png");</code></pre></div>
     b.innerHTML = ""; [].slice.call(i.querySelectorAll("canvas")).forEach(function (c) { c.remove(); });
     big = renderArtisticQr(text, 1000, {motion: true});
     icon = renderArtisticQr(text, 700, {thumb: true, motion: true, fps: 24, lens: {mods: 13, size: 300}});
-    if (big) b.appendChild(big); else b.innerHTML = '<div class="empty">Too long to fit in a QR code.</div>';
+    if (big) b.appendChild(big); else b.innerHTML = '<div class="empty">' + t("tooLong") + '</div>';
     if (icon) i.insertBefore(icon, i.children[1]);
     facts();
   }
@@ -261,24 +382,26 @@ var png = still.toDataURL("image/png");</code></pre></div>
     var h = document.documentElement, night = h.getAttribute("data-theme") !== "dark";
     h.setAttribute("data-theme", night ? "dark" : "light");                        // the maze cross-fades by itself
     this.innerHTML = '<svg class="i"><use href="#i-' + (night ? "sun" : "moon") + '"/></svg>';
-    this.setAttribute("aria-label", night ? "Switch to day" : "Switch to night");
+    this.setAttribute("aria-label", t(night ? "toDay" : "toNight"));
   };
+  $("lang").onclick = function () { setLang(lang === "fa" ? "en" : "fa"); };
   $("react").onclick = function () { mazeCheer(text); };
   $("png").onclick = function () {
-    if (!big) return; var a = document.createElement("a"); a.download = "maze-qr.png"; a.href = big.toDataURL("image/png"); a.click(); toast("Saved this frame");
+    if (!big) return; var a = document.createElement("a"); a.download = "maze-qr.png"; a.href = big.toDataURL("image/png"); a.click(); toast(t("saved"));
   };
   // docs: tabs (arrow keys move between them) and copy buttons on the code
   var tabs = [].slice.call(document.querySelectorAll(".tab"));
   tabs.forEach(function (t, k) {
     t.onclick = function () { tabs.forEach(function (o) { var on = o === t; o.setAttribute("aria-selected", on); o.tabIndex = on ? 0 : -1; $(o.getAttribute("aria-controls")).hidden = !on; }); };
-    t.onkeydown = function (e) { var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (d) { var n = tabs[(k + d + tabs.length) % tabs.length]; n.focus(); n.click(); } };
+    t.onkeydown = function (e) { var d = (e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0) * (lang === "fa" ? -1 : 1); if (d) { var n = tabs[(k + d + tabs.length) % tabs.length]; n.focus(); n.click(); } };
   });
   [].slice.call(document.querySelectorAll(".code")).forEach(function (box) {
     var b = document.createElement("button"); b.className = "copy"; b.setAttribute("aria-label", "Copy code"); b.innerHTML = '<svg class="i"><use href="#i-copy"/></svg>';
-    b.onclick = function () { navigator.clipboard.writeText(box.querySelector("code").textContent).then(function () { toast("Copied"); }, function () { toast("Copy failed"); }); };
+    b.onclick = function () { navigator.clipboard.writeText(box.querySelector("code").textContent).then(function () { toast(t("copied")); }, function () { toast(t("copyFail")); }); };
     box.appendChild(b);
   });
   draw();
+  setLang(lang);
 </script>
 </body>
 </html>
