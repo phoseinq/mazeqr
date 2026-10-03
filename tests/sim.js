@@ -3,27 +3,12 @@
 // the monster catches someone, how crowded the corridors get.
 //
 //   node tests/sim.js [text] [minutes]
-var fs = require("fs"), path = require("path"), vm = require("vm");
+var loadSim = require("./harness").loadSim;
 var TEXT = process.argv[2] || "https://example.com/s/k2o3bjF2M29lOXpjbWxj-bRUXxi21K", MIN = +process.argv[3] || 10;
 
-function ctx() {
-  return new Proxy({}, {get: function (t, k) {
-    if (k === "getImageData") return function (x, y, w, h) { return {data: new Uint8ClampedArray(Math.max(4, w * h * 4))}; };
-    if (k in t) return t[k]; return function () { return {addColorStop: function () {}}; };
-  }, set: function (t, k, v) { t[k] = v; return true; }});
-}
-var sb = {document: {hidden: false, createElement: function () { return {isConnected: true, getContext: function () { return ctx(); }}; },
-                     documentElement: {getAttribute: function () { return "light"; }}},
-  performance: {now: function () { return 0; }}, requestAnimationFrame: function () { return 1; }, cancelAnimationFrame: function () {},
-  console: console, Date: Date, Path2D: function () { this.moveTo = this.arc = function () {}; }};
-sb.window = sb; sb.matchMedia = function () { return {matches: false}; };
-vm.createContext(sb);
-var root = path.join(__dirname, "..");
-vm.runInContext(fs.readFileSync(path.join(root, "vendor/qrcode-generator.min.js"), "utf8") + ";\n" +
-  fs.readFileSync(path.join(root, "src/maze-qr.js"), "utf8").replace("var learn = {rate: 1};", "var learn = {rate: 1}; this.__people = people; this.__mon = monsters;"), sb);
-sb.__t = TEXT; vm.runInContext("renderArtisticQr(__t, 1000, {still: true})", sb);
-var sim = vm.runInContext("MAZE_SIMS[__t]", sb);
-if (!sim) { console.log("this code has no maze big enough for people"); process.exit(0); }
+var S = loadSim(TEXT);
+if (!S) { console.log("this code has no maze big enough for people"); process.exit(0); }
+var sim = S.sim, sb = {__people: S.people, __mon: S.monsters};
 
 var frames = 30 * 60 * MIN, inside = 0, samples = 0, caught = 0, entries = 0, through = 0, close = 0, pairs = 0, out = 0, start = {};
 for (var i = 0; i < frames; i++) {

@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  behaviour:
+    name: People & monster
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tests/behaviour.js 10
+
+  readability:
+    name: Scannability (ZXing, ZBar, quirc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y libzbar0
+      - run: pip install pillow numpy zxing-cpp pyzbar opencv-python-headless
+      - name: Render the test set in headless Chrome
+        run: google-chrome --headless=new --no-sandbox --disable-gpu --allow-file-access-from-files --virtual-time-budget=60000 --dump-dom "file://$PWD/tests/render.html" > tests/dump.html
+      - run: python tests/read_test.py tests/dump.html --check

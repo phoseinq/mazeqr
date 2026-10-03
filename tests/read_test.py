@@ -2,7 +2,10 @@
 (ZXing, ZBar, and quirc via OpenCV) and print a report.
 
     pip install pillow numpy zxing-cpp pyzbar opencv-python-headless
-    python tests/read_test.py tests/dump.html
+    python tests/read_test.py tests/dump.html [--check]
+
+--check exits 1 unless every render is valid, every plain render reads with ZXing and ZBar, and ZXing reads
+at least 97% overall (what CI runs).
 """
 import base64, html, io, json, random, re, sys
 from collections import defaultdict
@@ -13,7 +16,8 @@ import zxingcpp
 from PIL import Image, ImageEnhance, ImageFilter
 from pyzbar import pyzbar
 
-dom = io.open(sys.argv[1] if len(sys.argv) > 1 else "tests/dump.html", encoding="utf-8").read()
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+dom = io.open(args[0] if args else "tests/dump.html", encoding="utf-8").read()
 data = json.loads(html.unescape(re.search(r'<textarea id="out">(.*?)</textarea>', dom, re.S).group(1)))
 DET = cv2.QRCodeDetector()
 
@@ -68,3 +72,11 @@ print("renders:", len(data), " errors:", errors or 0, " renders with a core out 
 print("%-8s %6s  %7s  %7s  %12s" % ("", "reads", "ZXing", "ZBar", "quirc/OpenCV"))
 for k in ["normal", "hard", "camera", "all"]:
     s = stat[k]; print("%-8s %6d  %7s  %7s  %12s" % (k, s[0], pct(s[1], s[0]), pct(s[2], s[0]), pct(s[3], s[0])))
+if "--check" in sys.argv:
+    n, a = stat["normal"], stat["all"]
+    fails = [m for ok, m in [(not errors, "render errors"), (not bad_cores, "cores out of tone"),
+                             (n[1] == n[0] and n[2] == n[0], "a plain render did not read with ZXing and ZBar"),
+                             (a[1] >= .97 * a[0], "ZXing read under 97% overall")] if not ok]
+    if fails:
+        print("FAIL: " + "; ".join(fails)); sys.exit(1)
+    print("readability checks pass")
