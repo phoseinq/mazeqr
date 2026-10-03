@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- makes the pictures in docs/ (headless Chrome --dump-dom, then docs/save_shots.py) -->
+<body><textarea id="out"></textarea>
+<script src="../vendor/qrcode-generator.min.js"></script>
+<script src="../src/maze-qr.js"></script>
+<script>
+  var T = "https://example.com/hello-maze", out = {};
+  function put(name, cv) { out[name] = cv.toDataURL("image/png"); }
+  put("day", renderArtisticQr(T, 1000, {still: true, night: false, time: 24}));
+  put("night", renderArtisticQr(T, 1000, {still: true, night: true, time: 31}));
+  MAZE_COPY = 6.6; put("copy-night", renderArtisticQr(T, 1000, {still: true, night: true, time: 9}));
+  MAZE_COPY = 2.6; put("copy-day", renderArtisticQr(T, 1000, {still: true, night: false, time: 9}));
+  MAZE_COPY = -99;
+  put("debug", renderArtisticQr(T, 1000, {still: true, night: false, time: 5, debug: {showReservedModules: true, showSafeCores: true, showConnectivity: true}}));
+  put("plain-skeleton", renderArtisticQr(T, 1000, {still: true, night: false, debug: {hideArtwork: true}}));
+  document.getElementById("out").textContent = JSON.stringify(out);
+</script>

@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Maze QR — test renders</title>
+<!--
+  Renders a set of links at several sizes and moments (day, night, the copy reaction) and writes
+  the PNGs as JSON into the textarea, for read_test.py. Run headless:
+    chrome --headless=new --allow-file-access-from-files --virtual-time-budget=60000 --dump-dom tests/render.html > tests/dump.html
+-->
+<body><textarea id="out"></textarea>
+<script src="../vendor/qrcode-generator.min.js"></script>
+<script src="../src/maze-qr.js"></script>
+<script>
+  var LINKS = [
+    "https://example.com/s/k2o3bjF2M29lOXpjbWxj-bRUXxi21K",
+    "https://example.org/sub/ZGVtbywxNzAwMDAwMDAw-AbCdEf123",
+    "https://example.net/a/very/long/path/that/makes/a/bigger/code?query=demo-value-123",
+    "Hello, maze!"
+  ];
+  var JOBS = [];
+  LINKS.forEach(function (u, i) {
+    JOBS.push({u: u, name: "L" + i + "_day", s: 1000, o: {time: 20 + i, night: false}});
+    JOBS.push({u: u, name: "L" + i + "_night", s: 1000, o: {time: 30 + i, night: true}});
+    JOBS.push({u: u, name: "L" + i + "_event", s: 1000, o: {time: 9, night: i % 2 === 1, copyAt: i % 2 ? 6.5 : 2.4}});
+    JOBS.push({u: u, name: "L" + i + "_600", s: 600, o: {time: 15}});
+    JOBS.push({u: u, name: "L" + i + "_360", s: 360, o: {}});
+  });
+  var out = {};
+  JOBS.forEach(function (j) {
+    var o = Object.assign({still: true}, j.o); MAZE_COPY = o.copyAt != null ? o.copyAt : -99;
+    try { var cv = renderArtisticQr(j.u, j.s, o);
+      out[j.name] = {u: j.u, png: cv.toDataURL("image/png"), n: cv.__layout.n, cores: verifyCores(cv, MAZE.SPRITE_CORE_RATIO)}; }
+    catch (e) { out[j.name] = {u: j.u, err: String(e && e.message || e)}; }
+  });
+  document.getElementById("out").textContent = JSON.stringify(out);
+</script>

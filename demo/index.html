@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maze QR — demo</title>
+<style>
+  :root { --bg: #f4f1ea; --fg: #1d2b33; --card: #fffdf8; --line: #ded6c7; --accent: #2a9d8f; }
+  html[data-theme="dark"] { --bg: #0e151b; --fg: #e8eef2; --card: #16212a; --line: #26343f; --accent: #48c9b0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; transition: background .6s, color .6s; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.lead { margin: 0 0 18px; opacity: .75; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  input[type=text] { flex: 1 1 320px; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--fg); font: inherit; }
+  button { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--fg); font: inherit; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px; }
+  #big canvas { width: 100%; height: auto; display: block; border-radius: 12px; }
+  #icon { display: grid; justify-items: center; gap: 8px; }
+  #icon canvas { width: 132px; height: 132px; border-radius: 14px; box-shadow: 0 6px 18px -8px rgba(0,0,0,.5); }
+  small { opacity: .7; }
+  @media (max-width: 680px) { .stage { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Maze QR</h1>
+  <p class="lead">A real, scannable QR code drawn as a living hedge maze. Type anything, then scan it with your phone.</p>
+  <div class="bar">
+    <input id="text" type="text" value="https://example.com/hello-maze" aria-label="Text to encode">
+    <button class="primary" id="go">Draw</button>
+    <button id="theme">Night</button>
+    <button id="react">React (as on copy)</button>
+    <button id="png">Save PNG</button>
+  </div>
+  <div class="stage">
+    <div class="card" id="big"></div>
+    <div class="card" id="icon"><small>live icon (follows the monster)</small></div>
+  </div>
+  <p><small>Everything runs in the browser: no server, no CDN. The QR bits come from qrcode-generator; the art is a skin
+    drawn round them, and the centre of every module is restored to its bit's tone after each frame.</small></p>
+</main>
+<script src="../vendor/qrcode-generator.min.js"></script>
+<script src="../src/maze-qr.js"></script>
+<script>
+  var big = null, icon = null, text = "";
+  function draw() {
+    text = document.getElementById("text").value || " ";
+    if (big && big.__stop) big.__stop(); if (icon && icon.__stop) icon.__stop();
+    var b = document.getElementById("big"), i = document.getElementById("icon");
+    b.innerHTML = ""; [].slice.call(i.querySelectorAll("canvas")).forEach(function (c) { c.remove(); });
+    big = renderArtisticQr(text, 1000, {motion: true});
+    icon = renderArtisticQr(text, 700, {thumb: true, motion: true, fps: 24, lens: {mods: 13, size: 264}});
+    if (big) b.appendChild(big); else b.textContent = "Too long to encode.";
+    if (icon) i.insertBefore(icon, i.firstChild);
+  }
+  document.getElementById("go").onclick = draw;
+  document.getElementById("text").onkeydown = function (e) { if (e.key === "Enter") draw(); };
+  document.getElementById("theme").onclick = function () {
+    var h = document.documentElement, night = h.getAttribute("data-theme") !== "dark";
+    h.setAttribute("data-theme", night ? "dark" : "light");          // the maze cross-fades by itself
+    this.textContent = night ? "Day" : "Night";
+  };
+  document.getElementById("react").onclick = function () { mazeCheer(text); };
+  document.getElementById("png").onclick = function () {
+    if (!big) return; var a = document.createElement("a"); a.download = "maze-qr.png"; a.href = big.toDataURL("image/png"); a.click();
+  };
+  draw();
+</script>
+</body>
+</html>

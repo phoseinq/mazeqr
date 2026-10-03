@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maze QR — gallery</title>
+<style>
+  body { margin: 0; background: #ece7dd; color: #1d2b33; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 20px; margin: 0 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  figure { margin: 0; background: #fffdf8; border-radius: 14px; padding: 10px; box-shadow: 0 6px 18px -12px rgba(0,0,0,.4); }
+  figure canvas { width: 100%; height: auto; display: block; border-radius: 10px; }
+  figcaption { margin-top: 6px; font-size: 12px; opacity: .75; word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Maze QR — samples (still frames, day and night)</h1>
+  <div class="grid" id="grid"></div>
+</main>
+<script src="../vendor/qrcode-generator.min.js"></script>
+<script src="../src/maze-qr.js"></script>
+<script>
+  var samples = [
+    ["https://example.com/", false, 12], ["https://example.com/", true, 30],
+    ["Hello, maze!", false, 25], ["https://example.org/a/very/long/path/to/show/a/bigger/code?x=1", true, 18],
+    ["mailto:someone@example.com", false, 40], ["WIFI:T:WPA;S:example-network;P:not-a-real-password;;", true, 9],
+    ["https://example.net/p/42", false, 60], ["tel:+10000000000", true, 45]
+  ];
+  var grid = document.getElementById("grid");
+  samples.forEach(function (s) {
+    var f = document.createElement("figure"), cv = renderArtisticQr(s[0], 800, {still: true, night: s[1], time: s[2]});
+    f.appendChild(cv); var c = document.createElement("figcaption"); c.textContent = (s[1] ? "night · " : "day · ") + s[0]; f.appendChild(c); grid.appendChild(f);
+  });
+</script>
+</body>
+</html>
