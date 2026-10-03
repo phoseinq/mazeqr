@@ -401,7 +401,8 @@ function mazeSim(L) {
     seats.push({x: cx - .6, y: cy, who: null}, {x: cx + .6, y: cy, who: null}); });
   MAZE_BENCHES.forEach(function (b) { var dd = Q + 2.05, cx = b[0] === 1 ? n + dd : b[1] * n, cy = b[0] === 1 ? b[1] * n : n + dd;   // right side and bottom
     seats.push(b[0] === 1 ? {x: cx, y: cy - .5, who: null} : {x: cx - .5, y: cy, who: null}, b[0] === 1 ? {x: cx, y: cy + .5, who: null} : {x: cx + .5, y: cy, who: null}); });
-  function taken(c, me) { var k = key(c); return people.some(function (q) { return q !== me && q.mode === "maze" && !q.gone && (key(q.a) === k || key(q.b) === k); }); }
+  function taken(c, me) { var k = key(c), mine = key(me.a); return people.some(function (q) { return q !== me && q.mode === "maze" && !q.gone && (key(q.a) === k || key(q.b) === k) &&
+      key(q.b) !== mine && !(q.want && key(q.want) === mine); }); }       // one coming the other way is passed, not waited for (else both wait)
   function through(p, from) {                                        // a gate on the far side of their island, or its far end
     var mp = bfs(p.a), own = from ? key(from) : -1, far = gates.filter(function (g4) { return key(g4.c) !== own && mp.d[key(g4.c)] != null && mp.d[key(g4.c)] >= 10; });
     if (far.length) { far.sort(function (a, b) { return mp.d[key(b.c)] - mp.d[key(a.c)]; }); p.goal = far[Math.floor(rnd() * Math.min(2, far.length))].c; p.explore = null; return; }
@@ -499,7 +500,8 @@ function mazeSim(L) {
       if (near < cfg.FLEE_DISTANCE) {
         if (!p.flee) p.flee = true;
         if (p.wait > 0) p.wait = 0;
-        if (key(p.a) !== key(p.b) && db != null && da != null && db < da && p.f < .8) { var sw2 = p.a; p.a = p.b; p.b = sw2; p.f = 1 - p.f; }
+        // turn back from the monster, unless this step is the escape route itself (else they jitter in place)
+        if (!p.fleeStep && key(p.a) !== key(p.b) && db != null && da != null && db < da && p.f < .8) { var sw2 = p.a; p.a = p.b; p.b = sw2; p.f = 1 - p.f; }
       }
     }
     if (p.wait > 0) { p.wait -= dt; p.look = Math.sin(p.ph * 2.1 + p.seed) * (p.lost ? 1 : .6); return; }
@@ -510,8 +512,9 @@ function mazeSim(L) {
       p.tx = p.a[1] + .5 + (p.b[1] - p.a[1]) * Math.min(1, p.f); p.ty = p.a[0] + .5 + (p.b[0] - p.a[0]) * Math.min(1, p.f);
       if (p.f < 1) return;
       p.prevDir = [p.b[0] - p.a[0], p.b[1] - p.a[1]]; p.prev = p.a; p.a = p.b; p.f = 0;
-      p.hop = false;
+      p.hop = false; p.want = null;
       var o = nb(p.a), d = mdist(p.a), gt = gateAt[key(p.a)]; p.flee = !rage && d != null && d < cfg.FLEE_DISTANCE;
+      p.fleeStep = p.flee;
       p.hunt = !!rage && d != null && d < 18;
       if (p.hunt && o.length) { var bh = 1e9; o.forEach(function (c) { var v = mdist(c); v = v == null ? 1e9 : v + rnd() * .3; if (v < bh) { bh = v; p.b = c; } }); return; }
       if (p.flee) p.like = Math.min(1, p.like + .08);                   // chased: the garden gains
@@ -525,13 +528,13 @@ function mazeSim(L) {
         var mx = bfs(p.a), tx3 = p.explore;
         if (mx.d[key(tx3)] == null) p.explore = null;
         else { while (mx.par[key(tx3)] && key(mx.par[key(tx3)]) !== key(p.a)) tx3 = mx.par[key(tx3)];
-          if (taken(tx3, p) && (p.yield || 0) < 3) { p.yield = (p.yield || 0) + 1; p.b = p.a; p.wait = .3 + rnd() * .3; return; } p.yield = 0; p.b = tx3; return; } }
+          if (taken(tx3, p) && (p.yield || 0) < 3) { p.yield = (p.yield || 0) + 1; p.want = tx3; p.b = p.a; p.f = 1; p.wait = .3 + rnd() * .3; return; } p.yield = 0; p.b = tx3; return; } }
       if (!o.length) { p.b = p.a; p.wait = 1; return; }
       if (!p.flee && p.goal) {                                          // heading out: the shortest way
         var mp = bfs(p.a), t = p.goal;
         if (mp.d[key(t)] == null) p.goal = null;
         else { while (mp.par[key(t)] && key(mp.par[key(t)]) !== key(p.a)) t = mp.par[key(t)];
-          if (taken(t, p) && (p.yield || 0) < 3) { p.yield = (p.yield || 0) + 1; p.b = p.a; p.wait = .3 + rnd() * .3; return; } p.yield = 0; p.b = t; return; } }
+          if (taken(t, p) && (p.yield || 0) < 3) { p.yield = (p.yield || 0) + 1; p.want = t; p.b = p.a; p.f = 1; p.wait = .3 + rnd() * .3; return; } p.yield = 0; p.b = t; return; } }
       if (!p.flee) { p.panic = false; p.brave = null; }
       if (p.flee) {
         var me = safeBfs(p.a, nb), goal2 = null, gsc = -1e9;
