@@ -6,7 +6,7 @@
 var MAZE_SIMS = {};
 var MAZE = {
   QR_VERSION: 0,              // 0 = smallest that fits (H, ~66 chars -> version 8, 49x49)
-  ERROR_CORRECTION: "Q",      // Q: bigger modules and, for short links, one alignment square; the cores are kept, so the art does not lean on error correction
+  ERROR_CORRECTION: "Q",      // Q (owner's choice): one alignment square for these links instead of six; the cores are kept, so the art does not lean on error correction
   QUIET_ZONE: 4,              // modules of plain light path round the code; nothing drawn in it
   NIGHT_QUIET_ZONE: 2,        // by night the lit margin is kept to the 2 modules readers accept (tested)
   NIGHT_LIGHT_MIN: .76,       // by night the light modules are lamp-lit stone, not cream: this is their floor
@@ -344,8 +344,7 @@ function mazeSim(L) {
   function hopNb(c) { var out = []; [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (d) { var q = [c[0] + d[0], c[1] + d[1]], q2 = [c[0] + 2 * d[0], c[1] + 2 * d[1]];
       if (q[0] < 0 || q[1] < 0 || q[0] >= n || q[1] >= n) return;
       if (ok[key(q)] && comp[key(q)] === comp[key(c)]) out.push(q);                                   // over a low wall
-      else if (L.M.dark[q[0]][q[1]] && !L.role[q[0]][q[1]] && q2[0] >= 0 && q2[1] >= 0 && q2[0] < n && q2[1] < n && ok[key(q2)] && nb(q2).length &&
-        gated[comp[key(q2)]]) out.push(q2); });   // over a hedge, never into a pocket with no gate (they would pace it for ever)
+      else if (L.M.dark[q[0]][q[1]] && !L.role[q[0]][q[1]] && q2[0] >= 0 && q2[1] >= 0 && q2[0] < n && q2[1] < n && ok[key(q2)] && gated[comp[key(q2)]] && nb(q2).length) out.push(q2); });   // over a hedge, into a part with a gate
     return out; }
   function bfsHop(from) { var d = {}, par = {}, q = [from]; d[key(from)] = 0;
     for (var i = 0; i < q.length; i++) { var cc = q[i], dd = d[key(cc)];
@@ -403,6 +402,9 @@ function mazeSim(L) {
     seats.push({x: cx - .6, y: cy, who: null}, {x: cx + .6, y: cy, who: null}); });
   MAZE_BENCHES.forEach(function (b) { var dd = Q + 2.05, cx = b[0] === 1 ? n + dd : b[1] * n, cy = b[0] === 1 ? b[1] * n : n + dd;   // right side and bottom
     seats.push(b[0] === 1 ? {x: cx, y: cy - .5, who: null} : {x: cx - .5, y: cy, who: null}, b[0] === 1 ? {x: cx, y: cy + .5, who: null} : {x: cx + .5, y: cy, who: null}); });
+  var trod = {}, toGoal = {};
+  function wake(c, me) { var w = trod[key(c)]; return !!w && w.who !== me && clock - w.t < 3.5; }
+  function goalMap(g) { var k = key(g); return toGoal[k] || (toGoal[k] = bfs(g)); }
   function taken(c, me) { var k = key(c), mine = key(me.a); return people.some(function (q) { return q !== me && q.mode === "maze" && !q.gone && (key(q.a) === k || key(q.b) === k) &&
       key(q.b) !== mine && !(q.want && key(q.want) === mine); }); }       // one coming the other way is passed, not waited for (else both wait)
   function through(p, from) {                                        // a gate on the far side of their island, or its far end
@@ -504,8 +506,7 @@ function mazeSim(L) {
       if (near < cfg.FLEE_DISTANCE) {
         if (!p.flee) p.flee = true;
         if (p.wait > 0) p.wait = 0;
-        // turn back from the monster, unless this step is the escape route itself (else they jitter in place)
-        if (!p.fleeStep && key(p.a) !== key(p.b) && db != null && da != null && db < da && p.f < .8) { var sw2 = p.a; p.a = p.b; p.b = sw2; p.f = 1 - p.f; }
+        if (!p.planned && key(p.a) !== key(p.b) && db != null && da != null && db < da && p.f < .8) { var sw2 = p.a; p.a = p.b; p.b = sw2; p.f = 1 - p.f; }
       }
     }
     if (p.wait > 0) { p.wait -= dt; p.look = Math.sin(p.ph * 2.1 + p.seed) * (p.lost ? 1 : .6); return; }
@@ -515,16 +516,28 @@ function mazeSim(L) {
       p.f += sp * (turning && p.f > .6 && !p.flee ? .75 : 1) * dt;                 // eases into a turn
       p.tx = p.a[1] + .5 + (p.b[1] - p.a[1]) * Math.min(1, p.f); p.ty = p.a[0] + .5 + (p.b[0] - p.a[0]) * Math.min(1, p.f);
       if (p.f < 1) return;
-      p.prevDir = [p.b[0] - p.a[0], p.b[1] - p.a[1]]; p.prev = p.a; p.a = p.b; p.f = 0;
+      p.prevDir = [p.b[0] - p.a[0], p.b[1] - p.a[1]]; p.prev = p.a; p.a = p.b; p.f = 0; p.planned = false; trod[key(p.a)] = {t: clock, who: p};
       p.hop = false; p.want = null;
-      var o = nb(p.a), d = mdist(p.a), gt = gateAt[key(p.a)]; p.flee = !rage && d != null && d < cfg.FLEE_DISTANCE;
-      p.fleeStep = p.flee; if (!p.flee) p.vaulted = false;            // a new chase, a new chance to go over a hedge
+      var o = nb(p.a), d = mdist(p.a), gt = gateAt[key(p.a)], was = p.flee; p.flee = !rage && d != null && d < cfg.FLEE_DISTANCE;
+      if (was && !p.flee && !rage && rnd() < .75) { var mq = bfs(p.a), sg = null, ss = -1e9;
+        gates.forEach(function (g6) { var kg = key(g6.c), dg = mq.d[kg]; if (dg == null) return; var dm6 = mdist(g6.c), s6 = (dm6 == null ? 40 : dm6) - dg;
+          if (s6 > ss) { ss = s6; sg = g6.c; } });
+        if (sg && ss > 1) { p.goal = sg; p.shaken = true; p.explore = null; } }
       p.hunt = !!rage && d != null && d < 18;
+      if (!gated[comp[key(p.a)]]) {                                      // shut in a part with no gate: a breath, then over the hedge again
+        if (p.pocket == null) p.pocket = clock;
+        if (clock - p.pocket > 1.5) { var mh = bfsHop(p.a), tg2 = null, td = 1e9;
+          for (var kh in mh.d) if (gated[comp[kh]] && mh.d[kh] < td) { td = mh.d[kh]; tg2 = kh; }
+          if (tg2 != null) { var ch = [Math.floor(+tg2 / n), +tg2 % n]; while (mh.par[key(ch)] && key(mh.par[key(ch)]) !== key(p.a)) ch = mh.par[key(ch)];
+            p.b = ch; p.hop = !linked(p.a, ch); p.planned = true; p.goal = p.explore = null; return; } }
+        if (o.length) { p.b = o[Math.floor(rnd() * o.length)]; p.wait = .3 + rnd() * .5; } else { p.b = p.a; p.wait = .5; } return; }
+      p.pocket = null;
+      if (!p.flee) { p.panic = false; p.brave = null; }
       if (p.hunt && o.length) { var bh = 1e9; o.forEach(function (c) { var v = mdist(c); v = v == null ? 1e9 : v + rnd() * .3; if (v < bh) { bh = v; p.b = c; } }); return; }
       if (p.flee) p.like = Math.min(1, p.like + .08);                   // chased: the garden gains
-      if (gt && !p.flee && p.goal && key(gt.c) === key(p.goal) && inside() <= cfg.INSIDE_MIN) { p.goal = null; through(p, gt.c); }
+      if (gt && !p.flee && !p.shaken && p.goal && key(gt.c) === key(p.goal) && inside() <= cfg.INSIDE_MIN) { p.goal = null; through(p, gt.c); }
       if (gt && (p.flee || (p.goal && key(gt.c) === key(p.goal)))) {   // out through the gate (their gate, or any when chased)
-        p.mode = "exit"; p.path = [gateOut(gt)]; p.flee = false; p.goal = null; return; }
+        p.mode = "exit"; p.path = [gateOut(gt)]; p.flee = false; p.goal = null; p.shaken = false; return; }
       if (!p.goal && !p.flee && inside() > cfg.INSIDE_MIN && rnd() < learn.rate * (.4 + p.like) * .05) p.goal = nearestGate(p.a);
       if (!p.goal && !p.explore && !p.flee && rnd() < .2) through(p);
       if (p.explore && !p.flee) {                                        // the far end of a one-gate island, then back out
@@ -538,34 +551,34 @@ function mazeSim(L) {
         var mp = bfs(p.a), t = p.goal;
         if (mp.d[key(t)] == null) p.goal = null;
         else { while (mp.par[key(t)] && key(mp.par[key(t)]) !== key(p.a)) t = mp.par[key(t)];
+          if (wake(t, p)) { var gm = goalMap(p.goal), base = gm.d[key(t)], alt = o.filter(function (c) { var v = gm.d[key(c)]; return v != null && base != null && v <= base && !wake(c, p) && (!p.prev || key(c) !== key(p.prev)); });
+            if (alt.length) t = alt[Math.floor(rnd() * alt.length)]; }
           if (taken(t, p) && (p.yield || 0) < 3) { p.yield = (p.yield || 0) + 1; p.want = t; p.b = p.a; p.f = 1; p.wait = .3 + rnd() * .3; return; } p.yield = 0; p.b = t; return; } }
-      if (!p.flee) p.panic = false;
       if (p.flee) {
-        var me = safeBfs(p.a, nb), goal2 = null, gsc = -1e9, alt2 = null, gsc2 = -1e9, crowd = {};
-        people.forEach(function (q) { if (q === p || q.mode !== "maze" || q.gone) return;          // where the others are: everyone fleeing to one spot is a heap
-          [q.a, q.b].forEach(function (c) { [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (d) { var k = (c[0] + d[0]) * n + c[1] + d[1]; crowd[k] = (crowd[k] || 0) + (d[0] || d[1] ? .5 : 1); }); }); });
+        var me = safeBfs(p.a, nb), goal2 = null, gsc = -1e9, raw = -1e9;
         for (var kc in me.d) { var dm2 = null; monsters.forEach(function (M) { var v = M.eat > 0 ? null : M.map.d[kc]; if (v != null && (dm2 == null || v < dm2)) dm2 = v; });
-          var lead = (dm2 == null ? 40 : dm2) - me.d[kc] * 1.1, sc2 = lead + (gateAt[kc] && lead > 1 ? 8 : 0) + (dm2 == null ? 0 : Math.min(dm2, 30) * .15) - (crowd[kc] || 0) * 3;
-          if (+kc !== key(p.a) && sc2 > gsc2) { gsc2 = sc2; alt2 = kc; }
+          var lead = (dm2 == null ? 40 : dm2) - me.d[kc] * 1.1, sc2 = lead + (gateAt[kc] && lead > 1 ? 30 : 0) + (dm2 == null ? 0 : Math.min(dm2, 30) * .15); raw = Math.max(raw, sc2); sc2 += ((+kc * 7919 + Math.floor(p.seed * 1000)) % 101) / 101 * 4;
           if (sc2 > gsc) { gsc = sc2; goal2 = kc; } }
-        if (goal2 != null && +goal2 === key(p.a) && crowd[goal2] >= 1 && alt2 != null) goal2 = alt2;   // someone is already standing here: the next best
-        p.panic = gsc < 1.5;
-        if (!p.vaulted) {                                                // chased: once per chase they may go over a hedge, when that beats the paths or the crowd
+        p.panic = raw < 1.5; gsc = raw;
+        if (p.panic && !(clock - (p.leapt || -99) < 30) && (p.brave == null ? (p.brave = rnd() < .55) : p.brave)) {   // cornered: some find the nerve to go over the walls
           var me2 = safeBfs(p.a, hopNb), g3 = null, s3 = -1e9;
           for (var kd in me2.d) { var dm3 = null; monsters.forEach(function (M) { var v = M.eat > 0 ? null : M.map.d[kd]; if (v != null && (dm3 == null || v < dm3)) dm3 = v; });
-            var ld = (dm3 == null ? 40 : dm3) - me2.d[kd] * 1.3 - (crowd[kd] || 0) * 3; if (ld > s3) { s3 = ld; g3 = kd; } }
-          if (g3 != null && +g3 !== key(p.a) && (s3 > gsc || ((crowd[key(p.a)] || 0) >= 1 && s3 > 1))) { var t3 = +g3, c3 = [Math.floor(t3 / n), t3 % n];
+            var ld = (dm3 == null ? 40 : dm3) - me2.d[kd] * 1.3; if (gateAt[kd] && ld > 1) ld += 30; if (ld > s3) { s3 = ld; g3 = kd; } }
+          if (g3 != null && +g3 !== key(p.a) && s3 > gsc) { var t3 = +g3, c3 = [Math.floor(t3 / n), t3 % n];
             while (me2.par[key(c3)] && key(me2.par[key(c3)]) !== key(p.a)) c3 = me2.par[key(c3)];
-            p.b = c3; p.hop = !linked(p.a, c3); if (p.hop) p.vaulted = true; p.panic = s3 < 1.5; return; } }
+            p.b = c3; p.planned = true; p.hop = !linked(p.a, c3); if (p.hop) p.leapt = clock; p.panic = s3 < 1.5; return; } }
         if (goal2 != null && +goal2 !== key(p.a)) { var t2 = +goal2, cell = [Math.floor(t2 / n), t2 % n];
-          while (me.par[key(cell)] && key(me.par[key(cell)]) !== key(p.a)) cell = me.par[key(cell)]; p.b = cell; }
-        else if (goal2 != null && !(crowd[goal2] >= 1)) { p.b = p.a; p.f = 1; p.wait = .3 + rnd() * .3; }    // already in the safest spot: hold it, not pace to and fro
+          while (me.par[key(cell)] && key(me.par[key(cell)]) !== key(p.a)) cell = me.par[key(cell)];
+          if (wake(cell, p)) { var side = o.filter(function (c) { return me.d[key(c)] != null && !wake(c, p) && (!p.prev || key(c) !== key(p.prev)); }); if (side.length && rnd() < .6) cell = side[Math.floor(rnd() * side.length)]; }
+          p.b = cell; p.planned = true; }
         else { var best = -1; o.forEach(function (c) { var v = mdist(c); v = v == null ? 1e9 : v + rnd() * .5; if (v > best) { best = v; p.b = c; } }); }
       }
       else {
         var fwd = o.filter(function (c) { return !p.prev || key(c) !== key(p.prev); });
-        var roomy = fwd.filter(function (c) { return !taken(c, p); }); if (roomy.length) fwd = roomy;
-        else if (fwd.length && o.some(function (c) { return !taken(c, p); })) fwd = o.filter(function (c) { return !taken(c, p); });
+        var fresh = fwd.filter(function (c) { return !wake(c, p); }); if (fresh.length && rnd() < .85) fwd = fresh;
+        var roomy = fwd.filter(function (c) { return !taken(c, p); }); if (roomy.length) { fwd = roomy; p.yield = 0; }
+        else if (fwd.length && (p.yield || 0) < 2) { p.yield = (p.yield || 0) + 1; p.b = p.a; p.wait = .25 + rnd() * .35; return; }
+        else p.yield = 0;
         if (p.lost && rnd() < .25) fwd = o;                               // doubles back
         var from = fwd.length ? fwd : o; p.b = from[Math.floor(rnd() * from.length)];
         if (o.length > 2 && rnd() < .15) p.wait = .3 + rnd() * (p.lost ? 1.4 : .7);   // stops to choose
@@ -591,12 +604,11 @@ function mazeSim(L) {
       if (p.outT <= 0 && p.path.length) p.path = []; }
     if (p.mode === "out" && !p.path.length) {
       if (p.outT <= 0 && gates.length) { var near = gates.slice().sort(function (a, b) { var A = gateOut(a), B = gateOut(b);
-          return Math.hypot(A[0] - p.tx, A[1] - p.ty) - Math.hypot(B[0] - p.tx, B[1] - p.ty); }), busy = {}, inn = 1;
-        people.forEach(function (q) { if (q.mode === "maze" && !q.gone) { busy[comp[key(q.a)]] = (busy[comp[key(q.a)]] || 0) + 1; inn++; } });
-        // a near gate whose island is not past its share of the crowd (a small island with many gates would swallow everyone)
-        var room = near.filter(function (g6) { var c6 = comp[key(g6.c)]; return (busy[c6] || 0) < inn * sizes[c6] / gatedSize * 1.3 + .5; });
-        if (!room.length) room = near;
-        var g2 = room[Math.floor(rnd() * Math.min(2, room.length))];
+          return Math.hypot(A[0] - p.tx, A[1] - p.ty) - Math.hypot(B[0] - p.tx, B[1] - p.ty); }),
+          calm = near.filter(function (g7) { var v7 = mdist(g7.c); return v7 == null || v7 > cfg.FLEE_DISTANCE + 4; }); if (calm.length) near = calm;
+        var busy = {}, inn = 1; people.forEach(function (q) { if (q.mode === "maze" && !q.gone) { busy[comp[key(q.a)]] = (busy[comp[key(q.a)]] || 0) + 1; inn++; } });
+        var room = near.filter(function (g6) { var c6 = comp[key(g6.c)]; return (busy[c6] || 0) < inn * sizes[c6] / gatedSize * 1.3 + .5; });   // islands by their share
+        if (room.length) near = room; var g2 = near[Math.floor(rnd() * Math.min(3, near.length))];
         p.mode = "enter"; p.gate = g2; p.path = route([p.tx, p.ty], gateOut(g2)); p.path.push([g2.c[1] + .5, g2.c[0] + .5]); }
       else { var free = rnd() < .65 ? seats.filter(function (st) { return !st.who; }) : [], er = rnd();
         if (!isDay() && er < .3 && count("home") + count("goHome") < 4) { var dr = MAZE_DOORS[Math.floor(rnd() * MAZE_DOORS.length)], dp = doorPt(dr);   // home for a bit
@@ -705,7 +717,7 @@ function mazeSim(L) {
         if (p.punch > 0) { x += Math.sin(p.ph * 30) * px * .08; }
         if (!p.hop && p.mode === "maze" && Math.abs(p.b[0] - p.a[0]) + Math.abs(p.b[1] - p.a[1]) > 1) y -= Math.sin(Math.min(1, p.f) * Math.PI) * px * .3;
         if (p.hop && p.mode === "maze") y -= Math.sin(Math.min(1, p.f) * Math.PI) * px * (Math.abs(p.b[0] - p.a[0]) + Math.abs(p.b[1] - p.a[1]) > 1 ? 1.1 : .7);
-        else if (p.panic && p.mode === "maze") { y -= Math.abs(Math.sin(p.ph * 9)) * px * .15; }
+        else if (p.panic && p.flee && p.mode === "maze") { y -= Math.abs(Math.sin(p.ph * 9)) * px * .15; }
         mazePerson(g, x, y - u * .32, u, {shirt: p.o.shirt, skin: p.o.skin, hair: p.o.hair, step: p.mode === "fight" || p.punch > 0 ? Math.sin(p.ph * 20) : st, look: p.look,
           lean: Math.max(-.25, Math.min(.25, (p.vx || 0) * .07)), arms: p.mode === "fight" || p.punch > 0 ? (Math.sin(p.ph * 14) > 0 ? "up" : "swing") : p.cheer > 0 || p.flee || p.hunt ? "up" : p.lost && !moving ? "head" : "swing"});
         if (p.mode === "fight" && p.foe && p.x < p.foe.x) {                                      // one cloud per quarrel
@@ -720,7 +732,7 @@ function mazeSim(L) {
           g.textBaseline = "alphabetic"; g.fillText("\u2665", x, y - u * .85); }
         else if (p.hunt) { var ax = x + u * .32, ay = y - u * .95, ar = px * .2; g.strokeStyle = "#e63946"; g.lineWidth = Math.max(1.2, px * .09); g.lineCap = "round";   // the anger mark
           g.beginPath(); [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (q6) { g.moveTo(ax + q6[0] * ar * .35, ay + q6[1] * ar); g.quadraticCurveTo(ax + q6[0] * ar * .35, ay + q6[1] * ar * .35, ax + q6[0] * ar, ay + q6[1] * ar * .35); }); g.stroke(); }
-        else if (p.panic && p.mode === "maze") { g.fillStyle = "#e63946"; g.font = "900 " + (px * .8) + "px Inter,Vazirmatn,Tahoma"; g.textAlign = "center"; g.textBaseline = "alphabetic"; g.fillText("!!", x, y - u * .95); }
+        else if (p.panic && p.flee && p.mode === "maze") { g.fillStyle = "#e63946"; g.font = "900 " + (px * .8) + "px Inter,Vazirmatn,Tahoma"; g.textAlign = "center"; g.textBaseline = "alphabetic"; g.fillText("!!", x, y - u * .95); }
         else if (p.flee || (p.lost && !moving)) { g.fillStyle = p.flee ? "#e63946" : "#3a86ff"; g.font = "900 " + (px * .7) + "px Inter,Vazirmatn,Tahoma";
           g.textAlign = "center"; g.textBaseline = "alphabetic"; g.fillText(p.flee ? "!" : "?", x, y - u * .9); }
         boxes.push([fold(p.y) - .5, fold(p.x) - .5, 2]); return; }

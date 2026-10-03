@@ -14,13 +14,14 @@ function run(text) {
   var people = S.people, M0 = S.monsters[0], n = S.n, W = 4 / DT, total = Math.round(60 * MIN / DT);
   var hist = people.map(function () { return []; }), finders = [[0, 0], [0, n - 8], [n - 8, 0]];
   var r = {clump: 0, longest: 0, run: 0, finder: 0, chases: 0, vaults: 0, caught: 0, inside: 0, samples: 0};
-  var was = people.map(function (p) { return {flee: false, vaulted: false, gone: 0}; });
+  var was = people.map(function (p) { return {flee: false, hop: false, gone: 0}; });
   for (var i = 0; i < total; i++) {
     S.sim.step(DT);
     people.forEach(function (p, j) {
       var w = was[j];
-      if (p.flee && !w.flee) r.chases++; if (p.vaulted && !w.vaulted) r.vaults++; if (p.gone > 0 && !(w.gone > 0)) r.caught++;
-      w.flee = !!p.flee; w.vaulted = !!p.vaulted; w.gone = p.gone;
+      // a chase starts; a hedge vaulted during a chase; someone caught
+      if (p.flee && !w.flee) r.chases++; if (p.hop && p.flee && !w.hop) r.vaults++; if (p.gone > 0 && !(w.gone > 0)) r.caught++;
+      w.flee = !!p.flee; w.hop = !!p.hop; w.gone = p.gone;
       var h = hist[j]; h.push(p.mode === "maze" && !p.gone ? [p.x, p.y] : null); if (h.length > W) h.shift();
     });
     S.monsters.forEach(function (M) {                       // the monster's body (about a module round) never on a finder

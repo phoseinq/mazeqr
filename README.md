@@ -60,9 +60,9 @@ Both suites run in [CI](.github/workflows/ci.yml) on every push.
 | Conditions | Reads | ZXing | ZBar | quirc (OpenCV) |
 |---|---:|---:|---:|---:|
 | Plain (full size, ½, 0.4×) | 60 | **100%** | **100%** | 98.3% |
-| Hard (blur, JPEG q30, low contrast) | 80 | **100%** | 88.8% | **100%** |
-| Camera-like (tilt, blur, noise, JPEG) | 160 | 98.8% | 98.1% | 92.5% |
-| **All** | **300** | **99.3%** | **96.0%** | **95.7%** |
+| Hard (blur, JPEG q30, low contrast) | 80 | **100%** | 90.0% | **100%** |
+| Camera-like (tilt, blur, noise, JPEG) | 160 | 98.8% | 98.1% | 93.1% |
+| **All** | **300** | **99.3%** | **96.3%** | **96.0%** |
 
 Every module centre is in tone in all 20 renders (`verifyCores`).
 
@@ -70,12 +70,12 @@ Every module centre is in tone in all 20 renders (`verifyCores`).
 
 | Code | QR | People inside | Caught / min | Chases ending in a vault | Time clumped | Longest clump | Monster on a finder |
 |---|---|---:|---:|---:|---:|---:|---:|
-| `example.com/hello-maze` | 29×29 | 9.5 / 16 | 2.5 | 25% | 2.5% | 4.5 s | 0 s |
-| `example.org/menu` | 29×29 | 8.6 / 16 | 2.6 | 27% | 7.6% | 5.6 s | 0 s |
-| `example.net/a/b/c?x=1` | 29×29 | 9.1 / 16 | 2.1 | 22% | 2.2% | 2.7 s | 0 s |
-| `example.com/s/k2o3…` | 37×37 | 10.2 / 16 | 1.5 | 31% | 1.0% | 3.2 s | 0 s |
+| `example.com/hello-maze` | 29×29 | 8.7 / 16 | 2.9 | 3% | 4.6% | 3.2 s | 0 s |
+| `example.org/menu` | 29×29 | 6.4 / 16 | 1.8 | 1% | 2.4% | 2.7 s | 0 s |
+| `example.net/a/b/c?x=1` | 29×29 | 6.8 / 16 | 0.9 | 0% | 6.2% | 8.0 s | 0 s |
+| `example.com/s/k2o3…` | 37×37 | 9.5 / 16 | 1.5 | 1% | 0.7% | 1.7 s | 0 s |
 
-A *clump* is three or more people stuck within 1.5 modules for 4 s. On the first version of the engine the same checks
+A *clump* is three or more people stuck within 1.5 modules for 4 s. People vault a hedge only when cornered, then wait 30 s before the next jump. On the first version of the engine the same checks
 failed for every code: clumps of up to 6 minutes, crowds stuck 18–68% of the time, and the monster cutting across finder patterns.
 
 ## What it can do, and where it stops
@@ -91,7 +91,7 @@ failed for every code: clumps of up to 6 minutes, crowds stuck 18–68% of the t
 
 - **Pixels per module.** The full art needs about 12 screen pixels per module. Text length sets the QR version: a 30-character link is 29×29 modules and gets the full art from a canvas of about 520 px, while a 100-character link is 49×49 and needs about 800 px. **Short links look best.**
 - **Strict colours.** Dark cores must stay at or below 0.16 relative luminance and light ones at or above 0.91 (0.76 at night). Brand palettes have to fit inside those limits, and the code is always dark-on-light, even at night.
-- **Decoders differ.** The ZXing decoder reads 99.3% of the test set. On rough camera-like images quirc drops to 92.5%, and on heavily degraded ones ZBar drops to 89%. The camera tests are synthetic: real phones under glare are not part of CI.
+- **Decoders differ.** The ZXing decoder reads 99.3% of the test set. On rough camera-like images quirc drops to 93.1%, and on heavily degraded ones ZBar drops to 90%. The camera tests are synthetic: real phones under glare are not part of CI.
 - **CPU and battery.** A live canvas repaints at 30 fps on the main thread. One or two per page are fine; for galleries, lower `fps`, pause off-screen canvases (the gallery does), or use `still`.
 - **Shared crowd.** Canvases showing the same text share one simulation (that is how the icon follows the same monster). The crowd's day/night behaviour follows the page theme, so a canvas forced to `night: true` on a light page shows daytime activities like swimming.
 - **Screens first.** Print isn't validated. Export a high-resolution `still` and test it with a phone before printing.
