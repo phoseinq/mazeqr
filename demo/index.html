@@ -185,6 +185,13 @@
   canvas.style.width = "100%";
   document.getElementById("qr").appendChild(canvas);
 &lt;/script&gt;</code></pre></div>
+      <h3>With npm (Vite, webpack…)</h3>
+      <p>TypeScript types are included.</p>
+      <div class="code"><pre><code>npm install @phoseinq/mazeqr</code></pre></div>
+      <div class="code"><pre><code>import { renderArtisticQr, mazeCheer } from "@phoseinq/mazeqr";
+
+const canvas = renderArtisticQr("https://example.com/", 1000);
+document.getElementById("qr").appendChild(canvas);</code></pre></div>
       <h3>Day and night</h3>
       <p>Leave <code>night</code> out and the maze follows <code>&lt;html data-theme="dark"&gt;</code>, cross-fading when it changes:</p>
       <div class="code"><pre><code>document.documentElement.setAttribute("data-theme", "dark");   // the maze turns to night by itself</code></pre></div>
@@ -208,6 +215,13 @@ var png = still.toDataURL("image/png");</code></pre></div>
   canvas.style.width = "100%";
   document.getElementById("qr").appendChild(canvas);
 &lt;/script&gt;</code></pre></div>
+      <h3>با npm (مثل Vite یا webpack)</h3>
+      <p>تایپ‌های TypeScript هم همراهش هست.</p>
+      <div class="code"><pre><code>npm install @phoseinq/mazeqr</code></pre></div>
+      <div class="code"><pre><code>import { renderArtisticQr, mazeCheer } from "@phoseinq/mazeqr";
+
+const canvas = renderArtisticQr("https://example.com/", 1000);
+document.getElementById("qr").appendChild(canvas);</code></pre></div>
       <h3>روز و شب</h3>
       <p>اگر <code>night</code> را ندهید، هزارتو از <code>&lt;html data-theme="dark"&gt;</code> پیروی می‌کند و وقتی عوض شود، آرام به شب می‌رود:</p>
       <div class="code"><pre><code>document.documentElement.setAttribute("data-theme", "dark");   // the maze turns to night by itself</code></pre></div>
