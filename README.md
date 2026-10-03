@@ -6,6 +6,7 @@
 People wander it, a monster hunts them, and the code is built to stay readable while it moves.
 
 [![CI](https://github.com/phoseinq/mazeqr/actions/workflows/ci.yml/badge.svg)](https://github.com/phoseinq/mazeqr/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@phoseinq/mazeqr?color=2a9d8f)](https://www.npmjs.com/package/@phoseinq/mazeqr)
 [![Live demo](https://img.shields.io/badge/demo-live-2a9d8f)](https://phoseinq.github.io/mazeqr/demo/)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-2a9d8f)
 ![ZXing reads](https://img.shields.io/badge/ZXing%20reads-99.3%25-2a9d8f)
@@ -52,6 +53,8 @@ import { renderArtisticQr, mazeCheer } from "@phoseinq/mazeqr";
 
 document.getElementById("qr").appendChild(renderArtisticQr("https://example.com/", 1000));
 ```
+
+From npm through a CDN: `https://cdn.jsdelivr.net/npm/@phoseinq/mazeqr@1.0.0/dist/mazeqr.min.js`.
 
 **Or self-host:** download `mazeqr.min.js` from the [latest release](https://github.com/phoseinq/mazeqr/releases/latest) and load it with a plain `<script>` tag.
 
