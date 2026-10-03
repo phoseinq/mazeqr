@@ -86,7 +86,11 @@
   footer .wrap { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
 
   .lang { font-weight: 700; font-size: 13px; min-width: 38px; justify-content: center; }
-  html[lang="fa"] body { font-family: Vazirmatn, Tahoma, "Segoe UI", system-ui, sans-serif; }
+  /* Vazirmatn (OFL, demo/fonts): only the Persian range, so English pages never download it */
+  @font-face { font-family: "Vazirmatn"; src: url("fonts/Vazirmatn-wght.woff2") format("woff2-variations"), url("fonts/Vazirmatn-wght.woff2") format("woff2");
+    font-weight: 100 900; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
+  html[lang="fa"] body { font-family: Vazirmatn, system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; line-height: 1.8; }
+  html[lang="fa"] .hero h1 { letter-spacing: 0; line-height: 1.35; }
   html[lang="fa"] .l-en, html:not([lang="fa"]) .l-fa { display: none !important; }
   pre, code, #text { direction: ltr; unicode-bidi: isolate; } pre { text-align: left; }
   [dir="rtl"] nav { margin-left: 0; margin-right: auto; }
@@ -288,7 +292,7 @@ var png = still.toDataURL("image/png");</code></pre></div>
       <ul>
         <li><b>ماژول‌های تیره پرچین و روشن‌ها مسیر می‌شوند</b>؛ پس هزارتو <em>خودِ</em> کد است.</li>
         <li><b>مربع‌های بزرگ، خطوط زمان‌بندی، بیت‌های فرمت و نسخه</b> کامل و پرکنتراست کشیده می‌شوند و هیچ‌چیز از رویشان رد نمی‌شود.</li>
-        <li><b>هسته‌ی امن:</b> بعد از هر فریم، مرکز هر ماژولی که انیمیشن به آن دست زده به رنگ بیتش برمی‌گردد (روشنایی تیره ≤ 0.16 و روشن ≥ 0.91). آدمکی که از روی ماژول رد می‌شود فقط رنگش را کمی عوض می‌کند، نه مقدارش را.</li>
+        <li><b>هسته‌ی امن:</b> بعد از هر فریم، مرکز هر ماژولی که انیمیشن به آن دست زده به رنگ بیتش برمی‌گردد (روشنایی تیره حداکثر 0.16 و روشن دست‌کم 0.91). آدمکی که از روی ماژول رد می‌شود فقط رنگش را کمی عوض می‌کند، نه مقدارش را.</li>
         <li><b>حاشیه‌ی خالی</b> دور کد دست‌نخورده می‌ماند و منظره بعد از آن شروع می‌شود.</li>
       </ul>
       <p>هر push با سه دیکودر (ZXing، ZBar و quirc) روی تصاویر عادی، خراب‌شده و شبیه دوربین تست می‌شود و رفتار جمعیت هم شبیه‌سازی و بررسی می‌شود.</p>

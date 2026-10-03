@@ -123,3 +123,4 @@ python tests/read_test.py tests/dump.html --check
 ## Licence
 
 [MIT](LICENSE). Includes [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) by Kazuhiko Arase (MIT).
+The demo's Persian font is [Vazirmatn](https://github.com/rastikerdar/vazirmatn) (SIL OFL 1.1, `demo/fonts/OFL.txt`).
