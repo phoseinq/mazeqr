@@ -23,22 +23,37 @@ People wander it, a monster hunts them, and the code is built to stay readable w
 - **The maze is the code.** Dark modules are hedges, light ones are paths. Nothing is pasted on top of a QR code.
 - **Animated, yet it stays readable.** After every frame, the centre of every module is forced back to its bit's tone, so a moving figure can tint a module but never flip it.
 - **A small world.** People flee the monster along routes it can't reach first, vault a hedge when they are cornered, and gang up on it in the garden. Day brings a forest and a river, night brings a city.
-- **Plain JavaScript and Canvas.** No server, no CDN, no build step. The text you encode never leaves the browser.
+- **One file, no dependencies.** Plain JavaScript and Canvas, about 94 KB minified. No server; the text you encode never leaves the browser.
 
 ## Quick start
 
-Copy `vendor/qrcode-generator.min.js` and `src/maze-qr.js`, then:
+One script tag from a CDN, one function:
 
 ```html
 <div id="qr"></div>
-<script src="vendor/qrcode-generator.min.js"></script>
-<script src="src/maze-qr.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/phoseinq/mazeqr@1.0.0/dist/mazeqr.min.js"></script>
 <script>
   var canvas = renderArtisticQr("https://example.com/", 1000);   // a live <canvas>
   canvas.style.width = "100%";
   document.getElementById("qr").appendChild(canvas);
 </script>
 ```
+
+Pin the version (`@1.0.0`), not `@main`: a pinned file is cached for good and later changes to the repo can't break your page.
+
+**With npm** (for bundlers such as Vite or webpack; TypeScript types included):
+
+```bash
+npm install @phoseinq/mazeqr
+```
+
+```js
+import { renderArtisticQr, mazeCheer } from "@phoseinq/mazeqr";
+
+document.getElementById("qr").appendChild(renderArtisticQr("https://example.com/", 1000));
+```
+
+**Or self-host:** download `mazeqr.min.js` from the [latest release](https://github.com/phoseinq/mazeqr/releases/latest) and load it with a plain `<script>` tag.
 
 | You want | Write |
 |---|---|
@@ -95,7 +110,7 @@ failed for every code: clumps of up to 6 minutes, crowds stuck 18–68% of the t
 - **CPU and battery.** A live canvas repaints at 30 fps on the main thread. One or two per page are fine; for galleries, lower `fps`, pause off-screen canvases (the gallery does), or use `still`.
 - **Shared crowd.** Canvases showing the same text share one simulation (that is how the icon follows the same monster). The crowd's day/night behaviour follows the page theme, so a canvas forced to `night: true` on a light page shows daytime activities like swimming.
 - **Screens first.** Print isn't validated. Export a high-resolution `still` and test it with a phone before printing.
-- **Plain globals.** It ships as two classic scripts with global functions, not as an ES module or npm package.
+- **A browser library.** It needs a DOM and a canvas, so it does not run server-side (Node without a DOM). As a `<script>` it defines globals; through a bundler it is a CommonJS module.
 
 ## How it works
 
@@ -111,6 +126,10 @@ back to its bit's tone.
 ## Development
 
 ```bash
+npm install                        # terser, for the build
+npm run build                      # src/ + vendor/ -> dist/mazeqr.js, dist/mazeqr.min.js
+npm test                           # behaviour checks + the built files (CI)
+
 node tests/behaviour.js            # behaviour regression checks (CI)
 node tests/sim.js "<text>" 10      # behaviour stats for any text
 

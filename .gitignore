@@ -3,3 +3,4 @@ docs/shots_dump.html
 __pycache__/
 *.pyc
 .DS_Store
+node_modules/

@@ -1,0 +1,46 @@
+{
+  "name": "@phoseinq/mazeqr",
+  "version": "1.0.0",
+  "description": "A real, scannable QR code drawn as a living hedge maze: people wander it, a monster hunts them. Canvas, no dependencies.",
+  "license": "MIT",
+  "author": "phoseinq",
+  "homepage": "https://github.com/phoseinq/mazeqr",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phoseinq/mazeqr.git"
+  },
+  "bugs": "https://github.com/phoseinq/mazeqr/issues",
+  "keywords": [
+    "qr",
+    "qrcode",
+    "qr-code",
+    "maze",
+    "canvas",
+    "artistic-qr",
+    "animation"
+  ],
+  "main": "dist/mazeqr.js",
+  "types": "dist/mazeqr.d.ts",
+  "unpkg": "dist/mazeqr.min.js",
+  "jsdelivr": "dist/mazeqr.min.js",
+  "exports": {
+    ".": {
+      "types": "./dist/mazeqr.d.ts",
+      "default": "./dist/mazeqr.js"
+    },
+    "./min": "./dist/mazeqr.min.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/behaviour.js 10 && node tests/dist.js",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "terser": "^5.36.0"
+  }
+}

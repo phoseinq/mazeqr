@@ -9,13 +9,18 @@ function ctx() {
   }, set: function (t, k, v) { t[k] = v; return true; }});
 }
 
-function loadSim(text) {
+// a browser-like global object for vm.runInContext: canvases that draw nothing
+function sandbox() {
   var sb = {document: {hidden: false, createElement: function () { return {isConnected: true, getContext: function () { return ctx(); }}; },
                        documentElement: {getAttribute: function () { return "light"; }}},
     performance: {now: function () { return 0; }}, requestAnimationFrame: function () { return 1; }, cancelAnimationFrame: function () {},
     console: console, Date: Date, Path2D: function () { this.moveTo = this.arc = function () {}; }};
   sb.window = sb; sb.matchMedia = function () { return {matches: false}; };
-  vm.createContext(sb);
+  return vm.createContext(sb);
+}
+
+function loadSim(text) {
+  var sb = sandbox();
   var root = path.join(__dirname, "..");
   vm.runInContext(fs.readFileSync(path.join(root, "vendor/qrcode-generator.min.js"), "utf8") + ";\n" +
     fs.readFileSync(path.join(root, "src/maze-qr.js"), "utf8").replace("var learn = {rate: 1};", "var learn = {rate: 1}; this.__people = people; this.__mon = monsters;"), sb);
@@ -25,4 +30,4 @@ function loadSim(text) {
   return {sim: sim, people: sb.__people, monsters: sb.__mon, n: vm.runInContext("generateQrMatrix(__t, MAZE).n", sb)};
 }
 
-module.exports = {loadSim: loadSim};
+module.exports = {loadSim: loadSim, sandbox: sandbox};

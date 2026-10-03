@@ -1,0 +1,31 @@
+name: Publish to npm
+
+# Runs when a GitHub Release is published. Uses npm trusted publishing (OIDC): no npm token is
+# stored in the repo, and the package gets a provenance statement linking it to this workflow.
+# One-time setup on npmjs.com: package settings -> Trusted publishing -> GitHub Actions,
+# repository phoseinq/mazeqr, workflow publish.yml.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest      # trusted publishing needs npm 11.5.1 or newer
+      - run: npm ci
+      - name: The release tag matches package.json
+        run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+      - run: npm run build
+      - run: npm test
+      - run: npm publish --access public

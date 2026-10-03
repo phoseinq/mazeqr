@@ -162,7 +162,7 @@
 <section class="docs" id="docs">
   <div class="wrap">
     <h2 data-i18n="docs">Docs</h2>
-    <p class="lead" data-i18n="docsLead">One script, one function. No server, no CDN, no build step.</p>
+    <p class="lead" data-i18n="docsLead">One script, one function. No server, no dependencies, no build step.</p>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" aria-controls="p-use" id="t-use"><svg class="i"><use href="#i-code"/></svg><span data-i18n="tUse">Use it</span></button>
       <button class="tab" role="tab" aria-selected="false" aria-controls="p-api" id="t-api" tabindex="-1"><svg class="i"><use href="#i-sliders"/></svg><span data-i18n="tApi">API &amp; options</span></button>
@@ -173,14 +173,13 @@
     <div class="panel" role="tabpanel" id="p-use" aria-labelledby="t-use">
       <div class="l-en">
       <ol class="steps">
-        <li><b><svg class="i"><use href="#i-down"/></svg>1. Copy two files</b><code>vendor/qrcode-generator.min.js</code> and <code>src/maze-qr.js</code> from the repo.</li>
-        <li><b><svg class="i"><use href="#i-code"/></svg>2. Add the scripts</b>Plain <code>&lt;script&gt;</code> tags, before your own code.</li>
+        <li><b><svg class="i"><use href="#i-down"/></svg>1. Add one script</b><code>mazeqr.min.js</code> from jsDelivr (below), npm (<code>npm i @phoseinq/mazeqr</code>) or the latest release.</li>
+        <li><b><svg class="i"><use href="#i-code"/></svg>2. Pin the version</b><code>@1.0.0</code>, not <code>@main</code>: later changes can't break your page.</li>
         <li><b><svg class="i"><use href="#i-wand"/></svg>3. Draw</b><code>renderArtisticQr(text, size)</code> returns a live canvas.</li>
       </ol>
       <h3>On a web page</h3>
       <div class="code"><pre><code>&lt;div id="qr"&gt;&lt;/div&gt;
-&lt;script src="vendor/qrcode-generator.min.js"&gt;&lt;/script&gt;
-&lt;script src="src/maze-qr.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/phoseinq/mazeqr@1.0.0/dist/mazeqr.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   var canvas = renderArtisticQr("https://example.com/", 1000);
   canvas.style.width = "100%";
@@ -197,14 +196,13 @@ var png = still.toDataURL("image/png");</code></pre></div>
       </div>
       <div class="l-fa">
       <ol class="steps">
-        <li><b><svg class="i"><use href="#i-down"/></svg>۱. دو فایل را کپی کنید</b><code>vendor/qrcode-generator.min.js</code> و <code>src/maze-qr.js</code> را از ریپو بردارید.</li>
-        <li><b><svg class="i"><use href="#i-code"/></svg>۲. اسکریپت‌ها را اضافه کنید</b>با تگ‌های ساده‌ی <code>&lt;script&gt;</code>، قبل از کد خودتان.</li>
+        <li><b><svg class="i"><use href="#i-down"/></svg>۱. یک اسکریپت اضافه کنید</b><code>mazeqr.min.js</code> را از jsDelivr (پایین)، npm (<code>npm i @phoseinq/mazeqr</code>) یا آخرین Release بردارید.</li>
+        <li><b><svg class="i"><use href="#i-code"/></svg>۲. نسخه را ثابت کنید</b><code>@1.0.0</code> و نه <code>@main</code>؛ تا تغییرات بعدی صفحه‌ی شما را خراب نکند.</li>
         <li><b><svg class="i"><use href="#i-wand"/></svg>۳. بکشید</b><code>renderArtisticQr(text, size)</code> یک canvas زنده برمی‌گرداند.</li>
       </ol>
       <h3>روی یک صفحه‌ی وب</h3>
       <div class="code"><pre><code>&lt;div id="qr"&gt;&lt;/div&gt;
-&lt;script src="vendor/qrcode-generator.min.js"&gt;&lt;/script&gt;
-&lt;script src="src/maze-qr.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/phoseinq/mazeqr@1.0.0/dist/mazeqr.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   var canvas = renderArtisticQr("https://example.com/", 1000);
   canvas.style.width = "100%";
@@ -335,7 +333,7 @@ var png = still.toDataURL("image/png");</code></pre></div>
       lead: "People wander the corridors, a monster hunts them, a forest grows round it by day and a city by night, and it is built to stay readable while it moves. Type anything and scan.",
       input: "Text or link to encode", draw: "Draw", react: "React", reactT: "The reaction a page plays when its link is copied", png: "Save PNG", pngT: "Save this frame as a PNG",
       icon: "Live icon", follows: "follows the monster", thisCode: "This code", phone: "Point your phone's camera at the maze: it reads like any QR code.",
-      docsLead: "One script, one function. No server, no CDN, no build step.", tUse: "Use it", tApi: "API & options", tHow: "How it stays readable", tLimits: "Limits",
+      docsLead: "One script, one function. No server, no dependencies, no build step.", tUse: "Use it", tApi: "API & options", tHow: "How it stays readable", tLimits: "Limits",
       foot: "MIT licence · QR bits by qrcode-generator (MIT)", version: "Version", modules: "Modules", ppm: "Pixels / module", detail: "Detail", chars: "Characters",
       tooLong: "Too long to fit in a QR code.", saved: "Saved this frame", copied: "Copied", copyFail: "Copy failed", copyCode: "Copy code",
       toDay: "Switch to day", toNight: "Switch to night", other: "فا", otherName: "فارسی"},
@@ -343,7 +341,7 @@ var png = still.toDataURL("image/png");</code></pre></div>
       lead: "آدم‌ها در راهروها قدم می‌زنند، یک هیولا شکارشان می‌کند، روزها جنگل و شب‌ها شهر دورش جان می‌گیرد، و طوری ساخته شده که در حین حرکت خوانا بماند. هر چیزی تایپ کنید و اسکنش کنید.",
       input: "متن یا لینکی که کد شود", draw: "بساز", react: "واکنش", reactT: "واکنشی که صفحه هنگام کپی شدن لینک نشان می‌دهد", png: "ذخیره‌ی PNG", pngT: "این فریم را به‌صورت PNG ذخیره کن",
       icon: "آیکون زنده", follows: "دنبال هیولا می‌رود", thisCode: "این کد", phone: "دوربین گوشی را رو به هزارتو بگیرید؛ مثل هر کد QR دیگری خوانده می‌شود.",
-      docsLead: "یک اسکریپت، یک تابع. بدون سرور، بدون CDN و بدون build.", tUse: "استفاده", tApi: "API و گزینه‌ها", tHow: "چطور خوانا می‌ماند", tLimits: "محدودیت‌ها",
+      docsLead: "یک اسکریپت، یک تابع. بدون سرور، بدون وابستگی و بدون build.", tUse: "استفاده", tApi: "API و گزینه‌ها", tHow: "چطور خوانا می‌ماند", tLimits: "محدودیت‌ها",
       foot: "مجوز MIT · بیت‌های QR از qrcode-generator (MIT)", version: "نسخه", modules: "ماژول‌ها", ppm: "پیکسل هر ماژول", detail: "جزئیات", chars: "کاراکترها",
       tooLong: "برای یک کد QR خیلی طولانی است.", saved: "این فریم ذخیره شد", copied: "کپی شد", copyFail: "کپی نشد", copyCode: "کپی کد",
       toDay: "حالت روز", toNight: "حالت شب", other: "EN", otherName: "English"}
